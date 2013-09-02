@@ -3197,12 +3197,16 @@ static void mdp_early_suspend(struct early_suspend *h)
 	mdp4_solidfill_commit(MDP4_MIXER1);
 	mdp4_dtv_set_black_screen();
 #endif
+#if 0
 	mdp_footswitch_ctrl(FALSE);
+#endif
 }
 
 static void mdp_early_resume(struct early_suspend *h)
 {
+#if 0
 	mdp_footswitch_ctrl(TRUE);
+#endif
 	mutex_lock(&mdp_suspend_mutex);
 	mdp_suspended = FALSE;
 	mutex_unlock(&mdp_suspend_mutex);
