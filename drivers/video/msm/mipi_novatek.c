@@ -33,6 +33,8 @@ static struct msm_panel_common_pdata *mipi_novatek_pdata;
 static struct dsi_buf novatek_tx_buf;
 static struct dsi_buf novatek_rx_buf;
 
+struct dcs_cmd_req cmdreq;
+
 
 static char led_pwm1[] =
 {
@@ -349,29 +351,9 @@ static struct dsi_cmd_desc novatek_bkl_disable_cmds[] = {
 		sizeof(bkl_disable_cmds), bkl_disable_cmds},
 };
 
-#ifdef NOVATEK_ESD_WORKAROUND
-static char peripheral_off[2] = {0x00, 0x00};/* DTYPE_DCS_READ */
-static struct dsi_cmd_desc prevent_esd_cmds[] = {
-	{DTYPE_PERIPHERAL_OFF, 1, 0, 1, 0,
-		sizeof(peripheral_off), peripheral_off},
-};
-
-/* EMC workaround for LCM hang after ESD test */
-void mipi_novatek_set_prevent_esd(struct msm_fb_data_type *mfd)
-{
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
-	mipi_dsi_op_mode_config(DSI_CMD_MODE);
-	mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, prevent_esd_cmds,
-		ARRAY_SIZE(prevent_esd_cmds));
-	htc_mdp_sem_up(&mfd->dma->mutex);
-}
-/* EMC workaround for LCM hang after ESD test */
-#endif
-
 static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
 {
 	struct mipi_panel_info *mipi;
-	struct dcs_cmd_req cmdreq;
 
 	mipi  = &mfd->panel_info.mipi;
 	if (mipi_status == 0)
@@ -429,7 +411,6 @@ static void mipi_novatek_set_backlight(struct msm_fb_data_type *mfd)
 
 static void mipi_novatek_display_on(struct msm_fb_data_type *mfd)
 {
-	struct dcs_cmd_req cmdreq;
 
 	PR_DISP_DEBUG("%s+\n", __func__);
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
@@ -466,7 +447,6 @@ static void mipi_novatek_bkl_switch(struct msm_fb_data_type *mfd, bool on)
 
 static void mipi_novatek_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 {
-	struct dcs_cmd_req cmdreq;
 
 	PR_DISP_DEBUG("mipi_novatek_bkl_ctrl > on = %x\n", on);
 	if (on) {
@@ -517,7 +497,6 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	struct msm_fb_panel_data *pdata = NULL;
 	struct mipi_panel_info *mipi;
-	struct dcs_cmd_req cmdreq;
 
 	mfd = platform_get_drvdata(pdev);
 	if (!mfd)
