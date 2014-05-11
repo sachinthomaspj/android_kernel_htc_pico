@@ -76,17 +76,17 @@ msm_mipi-objs := mipi_dsi.o mipi_dsi_host.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI) += msm_mipi.o
 
 # MIPI manufacture
-obj-$(CONFIG_FB_MSM_MIPI_DSI_TOSHIBA) += mipi_toshiba.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_NOVATEK) += mipi_novatek.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_TOSHIBA) += mipi_toshiba.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_NOVATEK) += mipi_novatek.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI_SAMSUNG) += mipi_samsung.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_ORISE) += mipi_orise.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_RENESAS) += mipi_renesas.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_TRULY) += mipi_truly.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_NT35510) += mipi_NT35510.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_HX8389B) += mipi_hx8389b.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_NT35516) += mipi_truly_tft540960_1_e.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_NT35590) += mipi_NT35590.o
-obj-$(CONFIG_FB_MSM_MIPI_DSI_SIMULATOR) += mipi_simulator.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_ORISE) += mipi_orise.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_RENESAS) += mipi_renesas.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_TRULY) += mipi_truly.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_NT35510) += mipi_NT35510.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_HX8389B) += mipi_hx8389b.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_NT35516) += mipi_truly_tft540960_1_e.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_NT35590) += mipi_NT35590.o
+# obj-$(CONFIG_FB_MSM_MIPI_DSI_SIMULATOR) += mipi_simulator.o
 
 # MIPI Bridge
 obj-$(CONFIG_FB_MSM_MIPI_DSI_TC358764_DSI2LVDS) += mipi_tc358764_dsi2lvds.o
@@ -125,7 +125,7 @@ endif
 ifeq ($(CONFIG_FB_MSM_MIPI_PANEL_DETECT),y)
 obj-y += mipi_toshiba_video_wvga_pt.o mipi_toshiba_video_wsvga_pt.o mipi_toshiba_video_wuxga.o
 obj-y += mipi_novatek_video_qhd_pt.o mipi_novatek_cmd_qhd_pt.o
-obj-y += mipi_novatek_video_hvga_pt.o mipi_novatek_cmd_hvga_pt.o
+# obj-y += mipi_novatek_video_hvga_pt.o mipi_novatek_cmd_hvga_pt.o
 obj-y += mipi_samsung_cmd_hvga_pt.o
 obj-y += mipi_orise_video_720p_pt.o mipi_orise_cmd_720p_pt.o
 obj-y += mipi_renesas_video_fwvga_pt.o mipi_renesas_cmd_fwvga_pt.o
