@@ -495,7 +495,7 @@ static int mipi_samsung_lcd_off(struct platform_device *pdev)
 	return 0;
 }
 
-void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
+static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
 {
 	struct mipi_panel_info *mipi;
 

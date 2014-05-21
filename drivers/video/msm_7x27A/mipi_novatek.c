@@ -361,36 +361,14 @@ void mipi_novatek_set_prevent_esd(struct msm_fb_data_type *mfd)
 {
 	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
-	mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, prevent_esd_cmds,
+	mipi_dsi_cmds_tx(&novatek_tx_buf, prevent_esd_cmds,
 		ARRAY_SIZE(prevent_esd_cmds));
 	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 /* EMC workaround for LCM hang after ESD test */
 #endif
 
-void mipi_novatek_panel_type_detect(struct mipi_panel_info *mipi)
-{
-	if (panel_type == PANEL_ID_PIO_AUO) {
-		PR_DISP_INFO("%s: panel_type=PANEL_ID_PIO_AUO\n", __func__);
-		strcat(ptype, "PANEL_ID_PIO_AUO");
-		if (mipi->mode == DSI_VIDEO_MODE) {
-			mipi_power_on_cmd = pico_auo_video_on_cmds;
-			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_video_on_cmds);
-		} else {
-			mipi_power_on_cmd = pico_auo_cmd_on_cmds;
-			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_cmd_on_cmds);
-		}
-		mipi_power_off_cmd = novatek_display_off_cmds;
-		mipi_power_off_cmd_size = ARRAY_SIZE(novatek_display_off_cmds);
-	} else {
-		printk(KERN_ERR "%s: panel_type=0x%x not support\n", __func__, panel_type);
-		strcat(ptype, "PANEL_ID_NONE");
-	}
-	return;
-}
-
-
-static int mipi_dsi_set_backlight(struct msm_fb_data_type *mfd)
+static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
 {
 	struct mipi_panel_info *mipi;
 
@@ -408,25 +386,23 @@ static int mipi_dsi_set_backlight(struct msm_fb_data_type *mfd)
 		led_pwm1[1] = 0;
 	}
 
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	if (mipi->mode == DSI_VIDEO_MODE) {
 		mipi_dsi_cmd_mode_ctrl(1);	/* enable cmd mode */
-		mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, novatek_cmd_backlight_cmds,
+		mipi_dsi_cmds_tx(&novatek_tx_buf, novatek_cmd_backlight_cmds,
 			ARRAY_SIZE(novatek_cmd_backlight_cmds));
 		mipi_dsi_cmd_mode_ctrl(0);	/* disable cmd mode */
 	} else {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
-		mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, novatek_cmd_backlight_cmds,
+		mipi_dsi_cmds_tx(&novatek_tx_buf, novatek_cmd_backlight_cmds,
 			ARRAY_SIZE(novatek_cmd_backlight_cmds));
 	}
-	htc_mdp_sem_up(&mfd->dma->mutex);
 
 	if (led_pwm1[1] != 0)
 		bl_level_prevset = mfd->bl_level;
 
 	PR_DISP_DEBUG("mipi_dsi_set_backlight > set brightness to %d\n", led_pwm1[1]);
 end:
-	return 0;
+	return;
 }
 
 static void mipi_novatek_set_backlight(struct msm_fb_data_type *mfd)
@@ -435,18 +411,16 @@ static void mipi_novatek_set_backlight(struct msm_fb_data_type *mfd)
 
 	bl_level = mfd->bl_level;
 
-	mipi_dsi_set_backlight(mfd);
+	mipi_dsi_set_backlight(mfd, bl_level);
 
 }
 
 static void mipi_novatek_display_on(struct msm_fb_data_type *mfd)
 {
 	PR_DISP_DEBUG("%s+\n", __func__);
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
-	mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, novatek_display_on_cmds,
+	mipi_dsi_cmds_tx(&novatek_tx_buf, novatek_display_on_cmds,
 		ARRAY_SIZE(novatek_display_on_cmds));
-	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 
 static void mipi_novatek_bkl_switch(struct msm_fb_data_type *mfd, bool on)
@@ -465,7 +439,7 @@ static void mipi_novatek_bkl_switch(struct msm_fb_data_type *mfd, bool on)
 				mfd->bl_level = val;
 			}
 		}
-		mipi_dsi_set_backlight(mfd);
+		mipi_dsi_set_backlight(mfd, mfd->bl_level);
 	} else {
 		mipi_status = 0;
 	}
@@ -474,44 +448,57 @@ static void mipi_novatek_bkl_switch(struct msm_fb_data_type *mfd, bool on)
 static void mipi_novatek_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 {
 	PR_DISP_DEBUG("mipi_novatek_bkl_ctrl > on = %x\n", on);
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	if (on) {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
-		mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, novatek_bkl_enable_cmds,
+		mipi_dsi_cmds_tx(&novatek_tx_buf, novatek_bkl_enable_cmds,
 			ARRAY_SIZE(novatek_bkl_enable_cmds));
 	} else {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
-		mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, novatek_bkl_disable_cmds,
+		mipi_dsi_cmds_tx(&novatek_tx_buf, novatek_bkl_disable_cmds,
 			ARRAY_SIZE(novatek_bkl_disable_cmds));
 	}
-	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 
 static int mipi_novatek_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
-	struct msm_fb_panel_data *pdata = NULL;
+	struct mipi_panel_info *mipi;
 	struct msm_panel_info *pinfo;
 
 	mfd = platform_get_drvdata(pdev);
 	if (!mfd)
 		return -ENODEV;
-	pdata = (struct msm_fb_panel_data *)mfd->pdev->dev.platform_data;
-
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 
 	pinfo = &mfd->panel_info;
+	mipi  = &mfd->panel_info.mipi;
+
 	if (pinfo->is_3d_panel)
 		support_3d = TRUE;
 
-	if (mfd->init_mipi_lcd == 0) {
+	if (mfd->first_init_lcd != 0) {
 		PR_DISP_DEBUG("Display On - 1st time\n");
 
-		if (pdata && pdata->panel_type_detect)
-			pdata->panel_type_detect(&pinfo->mipi);
+	//Panel type detection (moved from mipi_novatek_panel_type_detect)
+	if (panel_type == PANEL_ID_PIO_AUO) {
+		PR_DISP_INFO("%s: panel_type=PANEL_ID_PIO_AUO\n", __func__);
+		strcat(ptype, "PANEL_ID_PIO_AUO");
+		if (mipi->mode == DSI_VIDEO_MODE) {
+			mipi_power_on_cmd = pico_auo_video_on_cmds;
+			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_video_on_cmds);
+		} else {
+			mipi_power_on_cmd = pico_auo_cmd_on_cmds;
+			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_cmd_on_cmds);
+		}
+		mipi_power_off_cmd = novatek_display_off_cmds;
+		mipi_power_off_cmd_size = ARRAY_SIZE(novatek_display_off_cmds);
+	} else {
+		printk(KERN_ERR "%s: panel_type=0x%x not support\n", __func__, panel_type);
+		strcat(ptype, "PANEL_ID_NONE");
+	} //Panel type detection ends here
 
-		mfd->init_mipi_lcd = 1;
+		mfd->first_init_lcd = 0;
 
 	} else {
 		PR_DISP_DEBUG("Display On \n");
@@ -519,15 +506,8 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 		if (panel_type != PANEL_ID_NONE) {
 			PR_DISP_INFO("%s\n", ptype);
 
-			htc_mdp_sem_down(current, &mfd->dma->mutex);
-			mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, mipi_power_on_cmd,
+			mipi_dsi_cmds_tx(&novatek_tx_buf, mipi_power_on_cmd,
 				mipi_power_on_cmd_size);
-			htc_mdp_sem_up(&mfd->dma->mutex);
-#if 0 /* mipi read command verify */
-				/* clean up ack_err_status */
-				mipi_dsi_cmd_bta_sw_trigger();
-				mipi_novatek_manufacture_id(mfd);
-#endif
 		} else {
 			printk(KERN_ERR "panel_type=0x%x not support at power on\n", panel_type);
 			return -EINVAL;
@@ -553,7 +533,7 @@ static int mipi_novatek_lcd_off(struct platform_device *pdev)
 
 	if (panel_type != PANEL_ID_NONE) {
 		PR_DISP_INFO("%s\n", ptype);
-		mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, mipi_power_off_cmd,
+		mipi_dsi_cmds_tx(&novatek_tx_buf, mipi_power_off_cmd,
 			mipi_power_off_cmd_size);
 	} else
 		printk(KERN_ERR "panel_type=0x%x not support at power off\n",
@@ -603,7 +583,6 @@ static struct msm_fb_panel_data novatek_panel_data = {
 	.display_on  = mipi_novatek_display_on,
 	.bklswitch	= mipi_novatek_bkl_switch,
 	.bklctrl	= mipi_novatek_bkl_ctrl,
-	.panel_type_detect = mipi_novatek_panel_type_detect,
 };
 
 static ssize_t mipi_dsi_3d_barrier_read(struct device *dev,
