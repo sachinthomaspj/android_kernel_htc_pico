@@ -544,11 +544,9 @@ static void mipi_samsung_set_backlight(struct msm_fb_data_type *mfd)
 static void mipi_samsung_display_on(struct msm_fb_data_type *mfd)
 {
 	PR_DISP_DEBUG("%s+\n", __func__);
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
 	mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_display_on_cmds,
 		ARRAY_SIZE(samsung_display_on_cmds));
-	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 
 static void mipi_samsung_bkl_switch(struct msm_fb_data_type *mfd, bool on)
@@ -576,7 +574,6 @@ static void mipi_samsung_bkl_switch(struct msm_fb_data_type *mfd, bool on)
 static void mipi_samsung_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 {
 	PR_DISP_INFO("mipi_samsung_bkl_ctrl > on = %x\n", on);
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	if (on) {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
 		mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_bkl_enable_cmds,
@@ -586,7 +583,6 @@ static void mipi_samsung_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 		mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_bkl_disable_cmds,
 			ARRAY_SIZE(samsung_bkl_disable_cmds));
 	}
-	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 
 static int mipi_samsung_lcd_probe(struct platform_device *pdev)
@@ -612,11 +608,9 @@ static struct msm_fb_panel_data samsung_panel_data = {
 	.on		= mipi_samsung_lcd_on,
 	.off		= mipi_samsung_lcd_off,
 	.set_backlight  = mipi_samsung_set_backlight,
-/*
 	.display_on  = mipi_samsung_display_on,
 	.bklswitch	= mipi_samsung_bkl_switch,
 	.bklctrl	= mipi_samsung_bkl_ctrl,
-*/
 };
 
 static int ch_used[3];

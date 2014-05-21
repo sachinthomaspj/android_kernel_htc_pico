@@ -200,6 +200,7 @@ struct msm_fb_panel_data {
 	void (*display_on) (struct msm_fb_data_type *);
 	void (*display_off) (struct msm_fb_data_type *);
 	void (*bklswitch) (struct msm_fb_data_type *, bool on);
+	void (*bklctrl) (struct msm_fb_data_type *, bool on);
 	int (*on) (struct platform_device *pdev);
 	int (*off) (struct platform_device *pdev);
 	int (*power_ctrl) (boolean enable);
