@@ -1538,21 +1538,21 @@ int mdp_ppp_v4l2_overlay_set(struct fb_info *info, struct mdp_overlay *req)
 	overlay_req.dst_rect.h = req->dst_rect.h;
 	mdp_overlay_req_set = true;
 
-	pr_debug("%s: Overlay parameters:", __func__);
-	pr_debug("Src_Image (%u %u)\n", overlay_req.src.width,
+	printk("%s: Overlay parameters:", __func__);
+	printk("Src_Image (%u %u)\n", overlay_req.src.width,
 	overlay_req.src.height);
 
 	if (overlay_req.src.format == MDP_Y_CRCB_H2V2)
-		pr_debug("Overlay format MDP_Y_CRCB_H2V2\n");
+		printk("Overlay format MDP_Y_CRCB_H2V2\n");
 	else if (overlay_req.src.format == MDP_RGB_565)
-		pr_debug("Overlay format MDP_RGB_565\n");
+		printk("Overlay format MDP_RGB_565\n");
 	else
-		pr_debug("Overlay format(%u) unknown\n",
+		printk("Overlay format(%u) unknown\n",
 		overlay_req.src.format);
 
-	pr_debug("Dst_Image (%u %u)\n", overlay_req.dst.width,
+	printk("Dst_Image (%u %u)\n", overlay_req.dst.width,
 		overlay_req.dst.height);
-	pr_debug("Src rect: (%u,%u,%u,%u), Dst rect: (%u,%u,%u,%u)\n",
+	printk("Src rect: (%u,%u,%u,%u), Dst rect: (%u,%u,%u,%u)\n",
 		overlay_req.src_rect.x, overlay_req.src_rect.y,
 		overlay_req.src_rect.w, overlay_req.src_rect.h,
 		overlay_req.dst_rect.x, overlay_req.dst_rect.y,

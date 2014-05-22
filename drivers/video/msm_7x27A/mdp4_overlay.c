@@ -145,12 +145,12 @@ void mdp4_overlay_iommu_unmap_freelist(int mixer)
 		ihdl = flist->ihdl[i];
 		if (ihdl == NULL)
 			continue;
-		pr_debug("%s: mixer=%d i=%d ihdl=0x%p\n", __func__,
+		printk("%s: mixer=%d i=%d ihdl=0x%p\n", __func__,
 					mixer, i, ihdl);
 		ion_unmap_iommu(display_iclient, ihdl, DISPLAY_READ_DOMAIN,
 							GEN_POOL);
 		mdp4_stat.iommu_unmap++;
-		pr_debug("%s: map=%d unmap=%d drop=%d\n", __func__,
+		printk("%s: map=%d unmap=%d drop=%d\n", __func__,
 			(int)mdp4_stat.iommu_map, (int)mdp4_stat.iommu_unmap,
 				(int)mdp4_stat.iommu_drop);
 		ion_free(display_iclient, ihdl);
@@ -174,7 +174,7 @@ void mdp4_overlay_iommu_2freelist(int mixer, struct ion_handle *ihdl)
 		return;
 	}
 
-	pr_debug("%s: add mixer=%d fndx=%d ihdl=0x%p\n", __func__,
+	printk("%s: add mixer=%d fndx=%d ihdl=0x%p\n", __func__,
 				mixer, flist->fndx, ihdl);
 
 	flist->total++;
@@ -194,7 +194,7 @@ void mdp4_overlay_iommu_pipe_free(int ndx, int all)
 	mutex_lock(&iommu_mutex);
 	mixer = pipe->mixer_num;
 	iom = &pipe->iommu;
-	pr_debug("%s: mixer=%d ndx=%d all=%d\n", __func__,
+	printk("%s: mixer=%d ndx=%d all=%d\n", __func__,
 				mixer, pipe->pipe_ndx, all);
 	for (plane = 0; plane < MDP4_MAX_PLANE; plane++) {
 		if (iom->prev_ihdl[plane]) {
@@ -225,9 +225,9 @@ int mdp4_overlay_iommu_map_buf(int mem_id,
 		pr_err("ion_import_dma_buf() failed\n");
 		return PTR_ERR(*srcp_ihdl);
 	}
-	pr_debug("%s(): ion_hdl %p, ion_buf %d\n", __func__, *srcp_ihdl,
+	printk("%s(): ion_hdl %p, ion_buf %d\n", __func__, *srcp_ihdl,
 		ion_share_dma_buf(display_iclient, *srcp_ihdl));
-	pr_debug("mixer %u, pipe %u, plane %u\n", pipe->mixer_num,
+	printk("mixer %u, pipe %u, plane %u\n", pipe->mixer_num,
 		pipe->pipe_ndx, plane);
 	if (ion_map_iommu(display_iclient, *srcp_ihdl,
 		DISPLAY_READ_DOMAIN, GEN_POOL, SZ_4K, 0, start,
@@ -250,7 +250,7 @@ int mdp4_overlay_iommu_map_buf(int mem_id,
 	iom->ihdl[plane] = *srcp_ihdl;
 	mdp4_stat.iommu_map++;
 
-	pr_debug("%s: ndx=%d plane=%d prev=0x%p cur=0x%p start=0x%lx len=%lx\n",
+	printk("%s: ndx=%d plane=%d prev=0x%p cur=0x%p start=0x%lx len=%lx\n",
 		 __func__, pipe->pipe_ndx, plane, iom->prev_ihdl[plane],
 			iom->ihdl[plane], *start, *len);
 	mutex_unlock(&iommu_mutex);
@@ -271,7 +271,7 @@ void mdp4_iommu_unmap(struct mdp4_overlay_pipe *pipe)
 		iom_pipe_info = &mdp_iommu[pipe->mixer_num][j];
 		for (i = 0; i < MDP4_MAX_PLANE; i++) {
 			if (iom_pipe_info->prev_ihdl[i]) {
-				pr_debug("%s(): mixer %u, pipe %u, plane %u, "
+				printk("%s(): mixer %u, pipe %u, plane %u, "
 					"prev_ihdl %p\n", __func__,
 					pipe->mixer_num, j + 1, i,
 					iom_pipe_info->prev_ihdl[i]);
@@ -285,7 +285,7 @@ void mdp4_iommu_unmap(struct mdp4_overlay_pipe *pipe)
 
 			if (iom_pipe_info->mark_unmap) {
 				if (iom_pipe_info->ihdl[i]) {
-					pr_debug("%s(): MARK, mixer %u, pipe %u, plane %u, "
+					printk("%s(): MARK, mixer %u, pipe %u, plane %u, "
 						"ihdl %p\n", __func__,
 						pipe->mixer_num, j + 1, i,
 						iom_pipe_info->ihdl[i]);
@@ -1591,7 +1591,7 @@ void mdp4_mixer_stage_commit(int mixer)
 		pipe = ctrl->stage[mixer][i];
 		if (pipe == NULL)
 			continue;
-		pr_debug("%s: mixer=%d ndx=%d stage=%d\n", __func__,
+		printk("%s: mixer=%d ndx=%d stage=%d\n", __func__,
 					mixer, pipe->pipe_ndx, i);
 		stage = pipe->mixer_stage;
 		if (mixer >= MDP4_MIXER1)
@@ -1617,7 +1617,7 @@ void mdp4_mixer_stage_commit(int mixer)
 			data |= ctrl->mixer_cfg[num];
 			off = 0x10100;
 		}
-		pr_debug("%s: mixer=%d data=%x flush=%x pid=%d\n", __func__,
+		printk("%s: mixer=%d data=%x flush=%x pid=%d\n", __func__,
 				mixer, data, ctrl->flush[mixer], current->pid);
 	}
 
@@ -1944,7 +1944,7 @@ void mdp4_mixer_blend_setup(int mixer)
 		d_pipe = mdp4_background_layer(mixer, s_pipe);
 		d_alpha = d_pipe->alpha_enable;
 		s_alpha = s_pipe->alpha_enable;
-		pr_debug("%s: stage=%d: bg: ndx=%d da=%d dalpha=%x "
+		printk("%s: stage=%d: bg: ndx=%d da=%d dalpha=%x "
 			"fg: ndx=%d sa=%d salpha=%x is_fg=%d alpha_drop=%d\n",
 		 __func__, i-2, d_pipe->pipe_ndx, d_alpha, d_pipe->alpha,
 		s_pipe->pipe_ndx, s_alpha, s_pipe->alpha, s_pipe->is_fg,
@@ -2133,7 +2133,7 @@ struct mdp4_overlay_pipe *mdp4_overlay_pipe_alloc(int ptype, int mixer)
 				continue;
 			init_completion(&pipe->comp);
 			init_completion(&pipe->dmas_comp);
-			pr_debug("%s: pipe=%x ndx=%d num=%d\n", __func__,
+			printk("%s: pipe=%x ndx=%d num=%d\n", __func__,
 				(int)pipe, pipe->pipe_ndx, pipe->pipe_num);
 			return pipe;
 		}
@@ -2150,7 +2150,7 @@ void mdp4_overlay_pipe_free(struct mdp4_overlay_pipe *pipe)
 	uint32 ptype, num, ndx, mixer;
 	struct mdp4_iommu_pipe_info iom;
 
-	pr_debug("%s: pipe=%x ndx=%d\n", __func__, (int)pipe, pipe->pipe_ndx);
+	printk("%s: pipe=%x ndx=%d\n", __func__, (int)pipe, pipe->pipe_ndx);
 
 	ptype = pipe->pipe_type;
 	num = pipe->pipe_num;
@@ -2362,7 +2362,7 @@ static int mdp4_overlay_req2pipe(struct mdp_overlay *req, int mixer,
 
 	if (!display_iclient && !IS_ERR_OR_NULL(mfd->iclient)) {
 		display_iclient = mfd->iclient;
-		pr_debug("%s(): display_iclient %p\n", __func__,
+		printk("%s(): display_iclient %p\n", __func__,
 			display_iclient);
 	}
 
@@ -2383,7 +2383,7 @@ static int mdp4_overlay_req2pipe(struct mdp_overlay *req, int mixer,
 	if (req->id == MSMFB_NEW_REQUEST) {  /* new request */
 		pipe->pipe_used++;
 		pipe->mixer_num = mixer;
-		pr_debug("%s: zorder=%d pipe ndx=%d num=%d\n", __func__,
+		printk("%s: zorder=%d pipe ndx=%d num=%d\n", __func__,
 			req->z_order, pipe->pipe_ndx, pipe->pipe_num);
 
 	}
@@ -2462,11 +2462,11 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 		return 0;
 	}
 
-	pr_debug("%s: pipe sets: panel res(x,y)=(%d,%d)\n",
+	printk("%s: pipe sets: panel res(x,y)=(%d,%d)\n",
 		 __func__,  mfd->panel_info.xres, mfd->panel_info.yres);
-	pr_debug("%s: src(w,h)(%d,%d),src(x,y)(%d,%d)\n",
+	printk("%s: src(w,h)(%d,%d),src(x,y)(%d,%d)\n",
 		 __func__,  pipe->src_w, pipe->src_h, pipe->src_x, pipe->src_y);
-	pr_debug("%s: dst(w,h)(%d,%d),dst(x,y)(%d,%d)\n",
+	printk("%s: dst(w,h)(%d,%d),dst(x,y)(%d,%d)\n",
 		 __func__, pipe->dst_w, pipe->dst_h, pipe->dst_x, pipe->dst_y);
 
 	pclk = (mfd->panel_info.type == MIPI_VIDEO_PANEL ||
@@ -2478,7 +2478,7 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 		pr_err("%s panel pixel clk is zero!\n", __func__);
 		return ret;
 	}
-	pr_debug("%s: mdp panel pixel clk is %d.\n",
+	printk("%s: mdp panel pixel clk is %d.\n",
 		 __func__, pclk);
 
 	if (!pipe->dst_h) {
@@ -2514,7 +2514,7 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 		hsync = mfd->panel_info.xres;
 		hsync *= 100;
 		hsync /= 120;
-		pr_debug("%s: panel hsync is %d. with scaling\n",
+		printk("%s: panel hsync is %d. with scaling\n",
 			__func__, hsync);
 
 	} else {
@@ -2522,7 +2522,7 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 			mfd->panel_info.lcdc.h_front_porch +
 			mfd->panel_info.lcdc.h_pulse_width +
 			mfd->panel_info.xres;
-		pr_debug("%s: panel hsync is %d.\n",
+		printk("%s: panel hsync is %d.\n",
 			__func__, hsync);
 	}
 
@@ -2545,7 +2545,7 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 	xscale -= pipe->dst_w;
 	xscale <<= shift;
 	xscale /= hsync;
-	pr_debug("%s: the right %d shifted xscale is %d.\n",
+	printk("%s: the right %d shifted xscale is %d.\n",
 		 __func__, shift, xscale);
 
 	if (pipe->src_h > pipe->dst_h) {
@@ -2561,7 +2561,7 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 	yscale *= pipe->src_w;
 	yscale /= hsync;
 
-	pr_debug("%s: the right %d shifted yscale is %d.\n",
+	printk("%s: the right %d shifted yscale is %d.\n",
 		 __func__, shift, yscale);
 
 	rst = pclk;
@@ -2583,7 +2583,7 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 		u32 clk = 0;
 		clk = 4 * (pclk >> shift) / mfd->panel_info.lcdc.v_back_porch;
 		clk <<= shift;
-		pr_debug("%s: mdp clk rate %d based on low vbp %d\n",
+		printk("%s: mdp clk rate %d based on low vbp %d\n",
 			 __func__, clk, mfd->panel_info.lcdc.v_back_porch);
 		rst = (rst > clk) ? rst : clk;
 	}
@@ -2596,13 +2596,13 @@ static int mdp4_calc_pipe_mdp_clk(struct msm_fb_data_type *mfd,
 	 */
 	if (rst < pclk) {
 		rst = ((pclk >> shift) * 23 / 20) << shift;
-		pr_debug("%s calculated mdp clk is less than pclk.\n",
+		printk("%s calculated mdp clk is less than pclk.\n",
 			__func__);
 	}
 
 	pipe->req_clk = (u32) rst;
 
-	pr_debug("%s: required mdp clk %d mixer %d pipe ndx %d\n",
+	printk("%s: required mdp clk %d mixer %d pipe ndx %d\n",
 		 __func__, pipe->req_clk, pipe->mixer_num, pipe->pipe_ndx);
 
 	return 0;
@@ -2700,7 +2700,7 @@ int mdp4_overlay_mdp_perf_req(struct msm_fb_data_type *mfd,
 		if (!pipe->req_bw) {
 			pr_err("%s mdp pipe bw request should not be zero!\n",
 			       __func__);
-			pr_debug("%s %d pid %d num %d idx %d mix %d bw %d\n",
+			printk("%s %d pid %d num %d idx %d mix %d bw %d\n",
 				 __func__, __LINE__, current->pid,
 				 pipe->pipe_num, pipe->pipe_ndx,
 				 pipe->mixer_num, pipe->req_bw);
@@ -2737,7 +2737,7 @@ int mdp4_overlay_mdp_perf_req(struct msm_fb_data_type *mfd,
 	if (cnt >= 3)
 		perf_req->mdp_bw = OVERLAY_PERF_LEVEL1;
 
-	pr_debug("%s %d pid %d cnt %d clk %d ov0_blt %d, ov1_blt %d bw %d\n",
+	printk("%s %d pid %d cnt %d clk %d ov0_blt %d, ov1_blt %d bw %d\n",
 		 __func__, __LINE__, current->pid, cnt,
 		 perf_req->mdp_clk_rate,
 		 perf_req->use_ov0_blt,
@@ -2771,7 +2771,7 @@ void mdp4_overlay_mdp_perf_upd(struct msm_fb_data_type *mfd,
 	struct mdp4_overlay_perf *perf_req = &perf_request;
 	struct mdp4_overlay_perf *perf_cur = &perf_current;
 
-	pr_debug("%s %d: req mdp clk %d, cur mdp clk %d flag %d\n",
+	printk("%s %d: req mdp clk %d, cur mdp clk %d flag %d\n",
 		 __func__, __LINE__,
 		 perf_req->mdp_clk_rate,
 		 perf_cur->mdp_clk_rate,
@@ -3040,7 +3040,7 @@ int mdp4_overlay_set(struct fb_info *info, struct mdp_overlay *req)
 	pipe->req_data = *req;		/* keep original req */
 
 	if (!IS_ERR_OR_NULL(mfd->iclient)) {
-		pr_debug("pipe->flags 0x%x\n", pipe->flags);
+		printk("pipe->flags 0x%x\n", pipe->flags);
 		if (pipe->flags & MDP_SECURE_OVERLAY_SESSION) {
 			mfd->mem_hid &= ~BIT(ION_IOMMU_HEAP_ID);
 			mfd->mem_hid |= ION_SECURE;
@@ -3055,7 +3055,7 @@ int mdp4_overlay_set(struct fb_info *info, struct mdp_overlay *req)
 			((req->src_rect.w > req->dst_rect.w) &&
 			 (req->src_rect.h > req->dst_rect.h)));
 		if (test) {
-			pr_debug("%s: No sharpening while downscaling.\n",
+			printk("%s: No sharpening while downscaling.\n",
 								__func__);
 			pipe->flags &= ~MDP_SHARPENING;
 		}
@@ -3267,7 +3267,7 @@ void mdp4_overlay_vsync_commit(struct mdp4_overlay_pipe *pipe)
 	else
 		mdp4_overlay_rgb_setup(pipe);	/* rgb pipe */
 
-	pr_debug("%s: pipe=%x ndx=%d num=%d used=%d\n", __func__,
+	printk("%s: pipe=%x ndx=%d num=%d used=%d\n", __func__,
 		(int) pipe, pipe->pipe_ndx, pipe->pipe_num, pipe->pipe_used);
 	mdp4_overlay_reg_flush(pipe, 1);
 	mdp4_mixer_stage_up(pipe, 0);
@@ -3322,7 +3322,7 @@ int mdp4_overlay_play(struct fb_info *info, struct msmfb_overlay_data *req)
 	pipe->srcp0_ystride = pipe->src_width * pipe->bpp;
 
 
-	pr_debug("%s: mixer=%d ndx=%x addr=%x flags=%x pid=%d\n", __func__,
+	printk("%s: mixer=%d ndx=%x addr=%x flags=%x pid=%d\n", __func__,
 		pipe->mixer_num, pipe->pipe_ndx, (int)addr, pipe->flags,
 							current->pid);
 
@@ -3661,7 +3661,7 @@ int mdp4_v4l2_overlay_play(struct fb_info *info, struct mdp4_overlay_pipe *pipe,
 		goto done;
 	}
 
-	pr_debug("%s: pipe ndx=%d stage=%d format=%x\n", __func__,
+	printk("%s: pipe ndx=%d stage=%d format=%x\n", __func__,
 		pipe->pipe_ndx, pipe->mixer_stage, pipe->src_format);
 
 	if (pipe->pipe_type == OVERLAY_TYPE_VIDEO)

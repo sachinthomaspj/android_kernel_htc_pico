@@ -117,7 +117,7 @@ void mipi_dsi_enable_irq(u32 term)
 	}
 	if (dsi_irq_mask == 0) {
 		enable_irq(dsi_irq);
-		pr_debug("%s: IRQ Enable, mask=%x term=%x\n",
+		printk("%s: IRQ Enable, mask=%x term=%x\n",
 				__func__, (int)dsi_irq_mask, (int)term);
 	}
 	dsi_irq_mask |= term;
@@ -136,7 +136,7 @@ void mipi_dsi_disable_irq(u32 term)
 	dsi_irq_mask &= ~term;
 	if (dsi_irq_mask == 0) {
 		disable_irq(dsi_irq);
-		pr_debug("%s: IRQ Disable, mask=%x term=%x\n",
+		printk("%s: IRQ Disable, mask=%x term=%x\n",
 				__func__, (int)dsi_irq_mask, (int)term);
 	}
 	spin_unlock_irqrestore(&dsi_irq_lock, flags);
@@ -152,7 +152,7 @@ void mipi_dsi_disable_irq_nosync(u32 term)
 	dsi_irq_mask &= ~term;
 	if (dsi_irq_mask == 0) {
 		disable_irq_nosync(dsi_irq);
-		pr_debug("%s: IRQ Disable, mask=%x term=%x\n",
+		printk("%s: IRQ Disable, mask=%x term=%x\n",
 				__func__, (int)dsi_irq_mask, (int)term);
 	}
 	spin_unlock(&dsi_irq_lock);
@@ -717,7 +717,7 @@ int mipi_dsi_cmd_dma_add(struct dsi_buf *dp, struct dsi_cmd_desc *cm)
 		len = mipi_dsi_peripheral_off(dp, cm);
 		break;
 	default:
-		pr_debug("%s: dtype=%x NOT supported\n",
+		printk("%s: dtype=%x NOT supported\n",
 					__func__, cm->dtype);
 		break;
 
@@ -958,7 +958,7 @@ void mipi_dsi_op_mode_config(int mode)
 				DSI_INTR_CMD_MDP_DONE_MASK;
 	}
 
-	pr_debug("%s: dsi_ctrl=%x intr=%x\n", __func__, dsi_ctrl, intr_ctrl);
+	printk("%s: dsi_ctrl=%x intr=%x\n", __func__, dsi_ctrl, intr_ctrl);
 
 	MIPI_OUTP(MIPI_DSI_BASE + 0x010c, intr_ctrl); 
 	MIPI_OUTP(MIPI_DSI_BASE + 0x0000, dsi_ctrl);
@@ -970,7 +970,7 @@ void mipi_dsi_mdp_busy_wait(struct msm_fb_data_type *mfd)
 	unsigned long flag;
 	int need_wait = 0;
 
-	pr_debug("%s: start pid=%d\n",
+	printk("%s: start pid=%d\n",
 				__func__, current->pid);
 	spin_lock_irqsave(&dsi_mdp_lock, flag);
 	if (dsi_mdp_busy == TRUE) {
@@ -981,11 +981,11 @@ void mipi_dsi_mdp_busy_wait(struct msm_fb_data_type *mfd)
 
 	if (need_wait) {
 		
-		pr_debug("%s: pending pid=%d\n",
+		printk("%s: pending pid=%d\n",
 				__func__, current->pid);
 		wait_for_completion(&dsi_mdp_comp);
 	}
-	pr_debug("%s: done pid=%d\n",
+	printk("%s: done pid=%d\n",
 				__func__, current->pid);
 }
 
@@ -1022,7 +1022,7 @@ void mipi_dsi_cmd_bta_sw_trigger(void)
 
 	mipi_dsi_ack_err_status();
 
-	pr_debug("%s: BTA done, cnt=%d\n", __func__, cnt);
+	printk("%s: BTA done, cnt=%d\n", __func__, cnt);
 }
 
 int mipi_dsi_cmd_bta_sw_trigger_special(void)
@@ -1044,7 +1044,7 @@ int mipi_dsi_cmd_bta_sw_trigger_special(void)
 
 	mipi_dsi_ack_err_status();
 
-	pr_debug("%s: BTA done, cnt=%d\n", __func__, cnt);
+	printk("%s: BTA done, cnt=%d\n", __func__, cnt);
 	return status;
 }
 
@@ -1090,11 +1090,11 @@ int mipi_dsi_cmd_reg_tx(uint32 data)
 	char *bp;
 
 	bp = (char *)&data;
-	pr_debug("%s: ", __func__);
+	printk("%s: ", __func__);
 	for (i = 0; i < 4; i++)
-		pr_debug("%x ", *bp++);
+		printk("%x ", *bp++);
 
-	pr_debug("\n");
+	printk("\n");
 #endif
 
 	MIPI_OUTP(MIPI_DSI_BASE + 0x0080, 0x04);
@@ -1237,7 +1237,7 @@ int mipi_dsi_cmds_rx(struct msm_fb_data_type *mfd,
 	cmd = rp->data[0];
 	switch (cmd) {
 	case DTYPE_ACK_ERR_RESP:
-		pr_debug("%s: rx ACK_ERR_PACLAGE\n", __func__);
+		printk("%s: rx ACK_ERR_PACLAGE\n", __func__);
 		break;
 	case DTYPE_GEN_READ1_RESP:
 	case DTYPE_DCS_READ1_RESP:
@@ -1334,7 +1334,7 @@ int mipi_dsi_cmds_rx_new(struct dsi_buf *tp, struct dsi_buf *rp,
 	cmd = rp->data[0];
 	switch (cmd) {
 	case DTYPE_ACK_ERR_RESP:
-		pr_debug("%s: rx ACK_ERR_PACLAGE\n", __func__);
+		printk("%s: rx ACK_ERR_PACLAGE\n", __func__);
 		break;
 	case DTYPE_GEN_READ1_RESP:
 	case DTYPE_DCS_READ1_RESP:
@@ -1368,11 +1368,11 @@ int mipi_dsi_cmd_dma_tx(struct dsi_buf *tp)
 
 	bp = tp->data;
 
-	pr_debug("%s: ", __func__);
+	printk("%s: ", __func__);
 	for (i = 0; i < tp->len; i++)
-		pr_debug("%x ", *bp++);
+		printk("%x ", *bp++);
 
-	pr_debug("\n");
+	printk("\n");
 #endif
 
 	if (tp->len == 0) {
@@ -1443,7 +1443,7 @@ void mipi_dsi_cmd_mdp_busy(void)
 	if (status & 0x04) {	
 		INIT_COMPLETION(dsi_mdp_comp);
 		need_wait = 1;
-		pr_debug("%s: status=%x need_wait\n", __func__, (int)status);
+		printk("%s: status=%x need_wait\n", __func__, (int)status);
 		mipi_dsi_enable_irq(DSI_MDP_TERM);
 	}
 	spin_unlock_irqrestore(&dsi_mdp_lock, flags);
@@ -1461,7 +1461,7 @@ struct dcs_cmd_req *mipi_dsi_cmdlist_get(void)
 		cmdlist.get++;
 		cmdlist.get %= CMD_REQ_MAX;
 		cmdlist.tot--;
-		pr_debug("%s: tot=%d put=%d get=%d\n", __func__,
+		printk("%s: tot=%d put=%d get=%d\n", __func__,
 		cmdlist.tot, cmdlist.put, cmdlist.get);
 	}
 	return req;
@@ -1511,7 +1511,7 @@ void mipi_dsi_cmdlist_commit(int from_mdp)
 		return;
 	}
 
-	pr_debug("%s:  from_mdp=%d pid=%d\n", __func__, from_mdp, current->pid);
+	printk("%s:  from_mdp=%d pid=%d\n", __func__, from_mdp, current->pid);
 
 	if (!from_mdp) { 
 		
@@ -1541,7 +1541,7 @@ int mipi_dsi_cmdlist_put(struct dcs_cmd_req *cmdreq)
 	cmdlist.tot++;
 	if (cmdlist.put == cmdlist.get) {
 		
-		pr_debug("%s: DROP, tot=%d put=%d get=%d\n", __func__,
+		printk("%s: DROP, tot=%d put=%d get=%d\n", __func__,
 			cmdlist.tot, cmdlist.put, cmdlist.get);
 		cmdlist.get++;
 		cmdlist.get %= CMD_REQ_MAX;
@@ -1550,7 +1550,7 @@ int mipi_dsi_cmdlist_put(struct dcs_cmd_req *cmdreq)
 	mutex_unlock(&cmd_mutex);
 
 	ret++;
-	pr_debug("%s: tot=%d put=%d get=%d\n", __func__,
+	printk("%s: tot=%d put=%d get=%d\n", __func__,
 		cmdlist.tot, cmdlist.put, cmdlist.get);
 
 	if (req->flags & CMD_REQ_COMMIT)
@@ -1578,7 +1578,7 @@ void mipi_dsi_ack_err_status(void)
 
 	if (status) {
 		MIPI_OUTP(MIPI_DSI_BASE + 0x0064, status);
-		pr_debug("%s: status=%x\n", __func__, status);
+		printk("%s: status=%x\n", __func__, status);
 	}
 }
 
@@ -1589,7 +1589,7 @@ void mipi_dsi_timeout_status(void)
 	status = MIPI_INP(MIPI_DSI_BASE + 0x00bc);
 	if (status & 0x0111) {
 		MIPI_OUTP(MIPI_DSI_BASE + 0x00bc, status);
-		pr_debug("%s: status=%x\n", __func__, status);
+		printk("%s: status=%x\n", __func__, status);
 	}
 }
 
@@ -1601,7 +1601,7 @@ void mipi_dsi_dln0_phy_err(void)
 
 	if (status & 0x011111) {
 		MIPI_OUTP(MIPI_DSI_BASE + 0x00b0, status);
-		pr_debug("%s: status=%x\n", __func__, status);
+		printk("%s: status=%x\n", __func__, status);
 	}
 }
 
@@ -1613,7 +1613,7 @@ void mipi_dsi_fifo_status(void)
 
 	if (status & 0x44444489) {
 		MIPI_OUTP(MIPI_DSI_BASE + 0x0008, status);
-		pr_debug("%s: status=%x\n", __func__, status);
+		printk("%s: status=%x\n", __func__, status);
 	}
 }
 
@@ -1625,7 +1625,7 @@ void mipi_dsi_status(void)
 
 	if (status & 0x80000000) {
 		MIPI_OUTP(MIPI_DSI_BASE + 0x0004, status);
-		pr_debug("%s: status=%x\n", __func__, status);
+		printk("%s: status=%x\n", __func__, status);
 	}
 }
 
@@ -1647,7 +1647,7 @@ irqreturn_t mipi_dsi_isr(int irq, void *ptr)
 	isr = MIPI_INP(MIPI_DSI_BASE + 0x010c);
 	MIPI_OUTP(MIPI_DSI_BASE + 0x010c, isr);
 
-	pr_debug("%s: isr=%x\n", __func__, (int)isr);
+	printk("%s: isr=%x\n", __func__, (int)isr);
 
 #ifdef CONFIG_FB_MSM_MDP40
 	mdp4_stat.intr_dsi++;

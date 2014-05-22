@@ -45,7 +45,7 @@ static int mipi_simulator_lcd_on(struct platform_device *pdev)
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 
-	pr_debug("%s:%d, debug info (mode) : %d", __func__, __LINE__,
+	printk("%s:%d, debug info (mode) : %d", __func__, __LINE__,
 		 mipi->mode);
 
 	if (mipi->mode == DSI_VIDEO_MODE) {
@@ -72,13 +72,13 @@ static int mipi_simulator_lcd_off(struct platform_device *pdev)
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 
-	pr_debug("%s:%d, debug info", __func__, __LINE__);
+	printk("%s:%d, debug info", __func__, __LINE__);
 
 	if (mipi->mode == DSI_VIDEO_MODE) {
 		mipi_dsi_cmds_tx(&simulator_tx_buf, display_off_cmds,
 			ARRAY_SIZE(display_off_cmds));
 	} else {
-		pr_debug("%s:%d, DONT REACH HERE", __func__, __LINE__);
+		printk("%s:%d, DONT REACH HERE", __func__, __LINE__);
 		return -EINVAL;
 	}
 
@@ -91,7 +91,7 @@ static int __devinit mipi_simulator_lcd_probe(struct platform_device *pdev)
 		mipi_simulator_pdata = pdev->dev.platform_data;
 		return 0;
 	}
-	pr_debug("%s:%d, debug info", __func__, __LINE__);
+	printk("%s:%d, debug info", __func__, __LINE__);
 
 	msm_fb_add_device(pdev);
 
@@ -123,7 +123,7 @@ int mipi_simulator_device_register(struct msm_panel_info *pinfo,
 
 	ch_used[channel] = TRUE;
 
-	pr_debug("%s:%d, debug info", __func__, __LINE__);
+	printk("%s:%d, debug info", __func__, __LINE__);
 	ret = mipi_simulator_lcd_init();
 	if (ret) {
 		pr_err("mipi_simulator_lcd_init() failed with ret %u\n", ret);

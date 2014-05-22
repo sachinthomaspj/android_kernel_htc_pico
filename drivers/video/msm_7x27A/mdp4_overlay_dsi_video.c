@@ -79,7 +79,7 @@ static void vsync_irq_enable(int intr, int term)
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_enable_irq(term);
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
-	pr_debug("%s: IRQ-en done, term=%x\n", __func__, term);
+	printk("%s: IRQ-en done, term=%x\n", __func__, term);
 }
 
 static void vsync_irq_disable(int intr, int term)
@@ -92,7 +92,7 @@ static void vsync_irq_disable(int intr, int term)
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_disable_irq_nosync(term);
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
-	pr_debug("%s: IRQ-dis done, term=%x\n", __func__, term);
+	printk("%s: IRQ-dis done, term=%x\n", __func__, term);
 }
 
 static void mdp4_overlay_dsi_video_start(void)
@@ -133,7 +133,7 @@ void mdp4_dsi_video_pipe_queue(int cndx, struct mdp4_overlay_pipe *pipe)
 
 	pp = &vp->plist[pipe->pipe_ndx - 1];	/* ndx start form 1 */
 
-	pr_debug("%s: vndx=%d pipe=%x ndx=%d num=%d pid=%d\n",
+	printk("%s: vndx=%d pipe=%x ndx=%d num=%d pid=%d\n",
 		 __func__, undx, (int)pipe, pipe->pipe_ndx, pipe->pipe_num,
 		current->pid);
 
@@ -266,7 +266,7 @@ void mdp4_dsi_video_vsync_ctrl(struct fb_info *info, int enable)
 	if (vctrl->vsync_irq_enabled == enable)
 		return;
 
-	pr_debug("%s: vsync enable=%d\n", __func__, enable);
+	printk("%s: vsync enable=%d\n", __func__, enable);
 
 	vctrl->vsync_irq_enabled = enable;
 
@@ -666,7 +666,7 @@ int mdp4_dsi_video_on(struct platform_device *pdev)
 		}
 
 		kobject_uevent(&vctrl->dev->kobj, KOBJ_ADD);
-		pr_debug("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
+		printk("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
 		vctrl->sysfs_created = 1;
 	}
 
@@ -892,7 +892,7 @@ void mdp4_primary_vsync_dsi_video(void)
 
 	cndx = 0;
 	vctrl = &vsync_ctrl_db[cndx];
-	pr_debug("%s: cpu=%d\n", __func__, smp_processor_id());
+	printk("%s: cpu=%d\n", __func__, smp_processor_id());
 	vctrl->vsync_time = ktime_get();
 
 	spin_lock(&vctrl->spin_lock);
@@ -1049,7 +1049,7 @@ void mdp4_dsi_video_overlay(struct msm_fb_data_type *mfd)
 	if (!pipe || !mfd->panel_power_on)
 		return;
 
-	pr_debug("%s: cpu=%d pid=%d\n", __func__,
+	printk("%s: cpu=%d pid=%d\n", __func__,
 			smp_processor_id(), current->pid);
 	if (pipe->pipe_type == OVERLAY_TYPE_RGB) {
 		bpp = fbi->var.bits_per_pixel / 8;

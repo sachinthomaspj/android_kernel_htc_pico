@@ -238,7 +238,7 @@ void mdp4_dsi_cmd_pipe_queue(int cndx, struct mdp4_overlay_pipe *pipe)
 
 	pp = &vp->plist[pipe->pipe_ndx - 1];	/* ndx start form 1 */
 
-	pr_debug("%s: vndx=%d pipe_ndx=%d expire=%x pid=%d\n", __func__,
+	printk("%s: vndx=%d pipe_ndx=%d expire=%x pid=%d\n", __func__,
 		undx, pipe->pipe_ndx, vctrl->expire_tick, current->pid);
 
 	*pp = *pipe;	/* clone it */
@@ -302,7 +302,7 @@ int mdp4_dsi_cmd_pipe_commit(void)
 		/* direct out */
 		if (vctrl->dmap_koff != vctrl->dmap_done) {
 			INIT_COMPLETION(vctrl->dmap_comp);
-			pr_debug("%s: wait, ok=%d od=%d dk=%d dd=%d cpu=%d\n",
+			printk("%s: wait, ok=%d od=%d dk=%d dd=%d cpu=%d\n",
 			 __func__, vctrl->ov_koff, vctrl->ov_done,
 			vctrl->dmap_koff, vctrl->dmap_done, smp_processor_id());
 			need_dmap_wait = 1;
@@ -311,12 +311,12 @@ int mdp4_dsi_cmd_pipe_commit(void)
 	spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 
 	if (need_dmap_wait) {
-		pr_debug("%s: wait4dmap\n", __func__);
+		printk("%s: wait4dmap\n", __func__);
 		mdp4_dsi_cmd_wait4dmap(0);
 	}
 
 	if (need_ov_wait) {
-		pr_debug("%s: wait4ov\n", __func__);
+		printk("%s: wait4ov\n", __func__);
 		mdp4_dsi_cmd_wait4ov(0);
 	}
 
@@ -368,7 +368,7 @@ int mdp4_dsi_cmd_pipe_commit(void)
 		vsync_irq_enable(INTR_DMA_P_DONE, MDP_DMAP_TERM);
 		vctrl->dmap_koff++;
 	}
-	pr_debug("%s: kickoff\n", __func__);
+	printk("%s: kickoff\n", __func__);
 	/* kickoff overlay engine */
 	mdp4_stat.kickoff_ov0++;
 	outpdw(MDP_BASE + 0x0004, 0);
@@ -391,7 +391,7 @@ void mdp4_dsi_cmd_vsync_ctrl(struct fb_info *info, int enable)
 
 	vctrl = &vsync_ctrl_db[cndx];
 
-	pr_debug("%s: clk_enabled=%d vsycn_enabeld=%d req=%d\n", __func__,
+	printk("%s: clk_enabled=%d vsycn_enabeld=%d req=%d\n", __func__,
 		vctrl->clk_enabled, vctrl->vsync_enabled, enable);
 
 	mutex_lock(&vctrl->update_lock);
@@ -405,7 +405,7 @@ void mdp4_dsi_cmd_vsync_ctrl(struct fb_info *info, int enable)
 
 	if (enable) {
 		if (vctrl->clk_enabled == 0) {
-			pr_debug("%s: SET_CLK_ON\n", __func__);
+			printk("%s: SET_CLK_ON\n", __func__);
 			mipi_dsi_clk_cfg(1);
 			mdp_clk_ctrl(1);
 			vctrl->clk_enabled = 1;
@@ -508,7 +508,7 @@ static void primary_rdptr_isr(int cndx)
 	struct vsycn_ctrl *vctrl;
 
 	vctrl = &vsync_ctrl_db[cndx];
-	pr_debug("%s: ISR, cpu=%d\n", __func__, smp_processor_id());
+	printk("%s: ISR, cpu=%d\n", __func__, smp_processor_id());
 	vctrl->rdptr_intr_tot++;
 	vctrl->vsync_time = ktime_get();
 
@@ -539,7 +539,7 @@ void mdp4_dmap_done_dsi_cmd(int cndx)
 	vsync_irq_disable(INTR_DMA_P_DONE, MDP_DMAP_TERM);
 	vctrl->dmap_done++;
 	diff = vctrl->ov_done - vctrl->dmap_done;
-	pr_debug("%s: ov_koff=%d ov_done=%d dmap_koff=%d dmap_done=%d cpu=%d\n",
+	printk("%s: ov_koff=%d ov_done=%d dmap_koff=%d dmap_done=%d cpu=%d\n",
 		__func__, vctrl->ov_koff, vctrl->ov_done, vctrl->dmap_koff,
 		vctrl->dmap_done, smp_processor_id());
 	complete_all(&vctrl->dmap_comp);
@@ -579,7 +579,7 @@ void mdp4_overlay0_done_dsi_cmd(int cndx)
 	complete_all(&vctrl->ov_comp);
 	diff = vctrl->ov_done - vctrl->dmap_done;
 
-	pr_debug("%s: ov_koff=%d ov_done=%d dmap_koff=%d dmap_done=%d cpu=%d\n",
+	printk("%s: ov_koff=%d ov_done=%d dmap_koff=%d dmap_done=%d cpu=%d\n",
 		__func__, vctrl->ov_koff, vctrl->ov_done, vctrl->dmap_koff,
 		vctrl->dmap_done, smp_processor_id());
 
@@ -596,7 +596,7 @@ void mdp4_overlay0_done_dsi_cmd(int cndx)
 		 * and put pipe_commit to wait
 		 */
 		vctrl->blt_wait = 1;
-		pr_debug("%s: blt_wait set\n", __func__);
+		printk("%s: blt_wait set\n", __func__);
 		spin_unlock(&vctrl->spin_lock);
 		return;
 	}
@@ -618,7 +618,7 @@ static void clk_ctrl_work(struct work_struct *work)
 
 	mutex_lock(&vctrl->update_lock);
 	if (vctrl->clk_control && vctrl->clk_enabled) {
-		pr_debug("%s: SET_CLK_OFF\n", __func__);
+		printk("%s: SET_CLK_OFF\n", __func__);
 		mdp_clk_ctrl(0);
 		mipi_dsi_clk_cfg(0);
 		spin_lock_irqsave(&vctrl->spin_lock, flags);
@@ -975,7 +975,7 @@ int mdp4_dsi_cmd_on(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	struct vsycn_ctrl *vctrl;
 
-	pr_debug("%s+:\n", __func__);
+	printk("%s+:\n", __func__);
 
 	mfd = (struct msm_fb_data_type *)platform_get_drvdata(pdev);
 
@@ -990,7 +990,7 @@ int mdp4_dsi_cmd_on(struct platform_device *pdev)
 	mdp4_iommu_attach();
 
 	atomic_set(&vctrl->suspend, 0);
-	pr_debug("%s-:\n", __func__);
+	printk("%s-:\n", __func__);
 
 	if (!vctrl->sysfs_created) {
 		ret = sysfs_create_group(&vctrl->dev->kobj,
@@ -1002,7 +1002,7 @@ int mdp4_dsi_cmd_on(struct platform_device *pdev)
 		}
 
 		kobject_uevent(&vctrl->dev->kobj, KOBJ_ADD);
-		pr_debug("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
+		printk("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
 		vctrl->sysfs_created = 1;
 	}
 
@@ -1017,7 +1017,7 @@ int mdp4_dsi_cmd_off(struct platform_device *pdev)
 	struct vsycn_ctrl *vctrl;
 	struct mdp4_overlay_pipe *pipe;
 
-	pr_debug("%s+:\n", __func__);
+	printk("%s+:\n", __func__);
 
 	mfd = (struct msm_fb_data_type *)platform_get_drvdata(pdev);
 
@@ -1056,7 +1056,7 @@ int mdp4_dsi_cmd_off(struct platform_device *pdev)
 	vsync_irq_disable(INTR_PRIMARY_RDPTR, MDP_PRIM_RDPTR_TERM);
 
 
-	pr_debug("%s-:\n", __func__);
+	printk("%s-:\n", __func__);
 
 	/*
 	 * footswitch off

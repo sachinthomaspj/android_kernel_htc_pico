@@ -1053,7 +1053,7 @@ static int mdp_bl_scale_config(struct msm_fb_data_type *mfd,
 	int curr_bl = mfd->bl_level;
 	bl_scale = data->scale;
 	bl_min_lvl = data->min_lvl;
-	pr_debug("%s: update scale = %d, min_lvl = %d\n", __func__, bl_scale,
+	printk("%s: update scale = %d, min_lvl = %d\n", __func__, bl_scale,
 								bl_min_lvl);
 
 	
@@ -1581,7 +1581,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 				     panel_info->mode2_yres + PAGE_SIZE -
 				     remainder_mode2) * mfd->fb_page);
 	else if (mfd->index == 1 || mfd->index == 2) {
-		pr_debug("%s:%d no memory is allocated for fb%d!\n",
+		printk("%s:%d no memory is allocated for fb%d!\n",
 			__func__, __LINE__, mfd->index);
 		fix->smem_len = 0;
 	}
@@ -1619,7 +1619,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 				  panel_info->yres));
 		}
 	}
-	pr_debug("reserved[3] %u\n", var->reserved[3]);
+	printk("reserved[3] %u\n", var->reserved[3]);
 
 	id = (int *)&mfd->panel;
 
@@ -1944,7 +1944,7 @@ static int msm_fb_open(struct fb_info *info, int user)
 			(info->node != 1 && info->node != 2))
 			mdp_set_dma_pan_info(info, NULL, TRUE);
 		else
-			pr_debug("%s:%d no mdp_set_dma_pan_info %d\n",
+			printk("%s:%d no mdp_set_dma_pan_info %d\n",
 				__func__, __LINE__, info->node);
 
 		pr_info("[DISP] %s: unblank!\n", __func__);

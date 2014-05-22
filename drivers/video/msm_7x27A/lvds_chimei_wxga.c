@@ -39,7 +39,7 @@ static void lvds_chimei_set_backlight(struct msm_fb_data_type *mfd)
 {
 	int ret;
 
-	pr_debug("%s: back light level %d\n", __func__, mfd->bl_level);
+	printk("%s: back light level %d\n", __func__, mfd->bl_level);
 
 	if (bl_lpm) {
 		ret = pwm_config(bl_lpm, LVDS_CHIMEI_PWM_DUTY_LEVEL *
@@ -78,7 +78,7 @@ static int __devinit lvds_chimei_probe(struct platform_device *pdev)
 		pr_err("%s pwm_request() failed\n", __func__);
 		bl_lpm = NULL;
 	}
-	pr_debug("bl_lpm = %p lpm = %d\n", bl_lpm,
+	printk("bl_lpm = %p lpm = %d\n", bl_lpm,
 		cm_pdata->gpio[0]);
 
 	cm_fbpdev = msm_fb_add_device(pdev);

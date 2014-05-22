@@ -379,7 +379,7 @@ irqreturn_t mdp4_isr(int irq, void *ptr)
 	outpdw(MDP_INTR_CLEAR, isr);
 
 	if (isr & INTR_PRIMARY_INTF_UDERRUN) {
-		pr_debug("%s: UNDERRUN -- primary\n", __func__);
+		printk("%s: UNDERRUN -- primary\n", __func__);
 		mdp4_stat.intr_underrun_p++;
 		/* When underun occurs mdp clear the histogram registers
 		that are set before in hw_init so restore them back so
@@ -393,7 +393,7 @@ irqreturn_t mdp4_isr(int irq, void *ptr)
 	}
 
 	if (isr & INTR_EXTERNAL_INTF_UDERRUN) {
-		pr_debug("%s: UNDERRUN -- external\n", __func__);
+		printk("%s: UNDERRUN -- external\n", __func__);
 		mdp4_stat.intr_underrun_e++;
 	}
 
@@ -2635,7 +2635,7 @@ void mdp4_free_writeback_buf(struct msm_fb_data_type *mfd, u32 mix_num)
 	} else {
 		if (buf->write_addr) {
 			free_contiguous_memory_by_paddr(buf->write_addr);
-			pr_debug("%s:%d free writeback pmem\n", __func__,
+			printk("%s:%d free writeback pmem\n", __func__,
 				__LINE__);
 		}
 	}

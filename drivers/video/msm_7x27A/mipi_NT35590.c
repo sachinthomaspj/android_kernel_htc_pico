@@ -1471,7 +1471,7 @@ static int mipi_nt35590_lcd_off(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
 
-	pr_debug("mipi_nt35590_lcd_off E\n");
+	printk("mipi_nt35590_lcd_off E\n");
 
 	mfd = platform_get_drvdata(pdev);
 
@@ -1483,7 +1483,7 @@ static int mipi_nt35590_lcd_off(struct platform_device *pdev)
 	mipi_dsi_cmds_tx(&nt35590_tx_buf, nt35590_display_off_cmds,
 			ARRAY_SIZE(nt35590_display_off_cmds));
 
-	pr_debug("mipi_nt35590_lcd_off X\n");
+	printk("mipi_nt35590_lcd_off X\n");
 	return 0;
 }
 
@@ -1545,7 +1545,7 @@ static int __devinit mipi_nt35590_lcd_probe(struct platform_device *pdev)
 {
 	struct platform_device *pthisdev = NULL;
 	struct msm_fb_panel_data *pdata;
-	pr_debug("%s\n", __func__);
+	printk("%s\n", __func__);
 
 	if (pdev->id == 0) {
 		mipi_nt35590_pdata = pdev->dev.platform_data;
@@ -1645,13 +1645,13 @@ int mipi_nt35590_device_register(struct msm_panel_info *pinfo,
 	ret = platform_device_add_data(pdev, &nt35590_panel_data,
 				sizeof(nt35590_panel_data));
 	if (ret) {
-		pr_debug("%s: platform_device_add_data failed!\n", __func__);
+		printk("%s: platform_device_add_data failed!\n", __func__);
 		goto err_device_put;
 	}
 
 	ret = platform_device_add(pdev);
 	if (ret) {
-		pr_debug("%s: platform_device_register failed!\n", __func__);
+		printk("%s: platform_device_register failed!\n", __func__);
 		goto err_device_put;
 	}
 

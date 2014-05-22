@@ -4818,7 +4818,7 @@ static int __init hdmi_msm_init(void)
 		goto init_exit;
 	}
 
-	pr_debug("%s: success:"
+	printk("%s: success:"
 #ifdef DEBUG
 		" DEBUG"
 #else

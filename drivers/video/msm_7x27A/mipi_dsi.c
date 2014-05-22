@@ -135,7 +135,7 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	else
 		htc_mdp_sem_up(&mfd->dma->mutex);
 
-	pr_debug("%s-:\n", __func__);
+	printk("%s-:\n", __func__);
 
 	return ret;
 }
@@ -348,7 +348,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 
 	mdp4_overlay_dsi_state_set(ST_DSI_RESUME);
 
-	pr_debug("%s-:\n", __func__);
+	printk("%s-:\n", __func__);
 
 	return ret;
 }
@@ -412,7 +412,7 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 			periph_base = ioremap(MMSS_SERDES_BASE_PHY, 0x100);
 
 			if (periph_base) {
-				pr_debug("periph_base %p\n", periph_base);
+				printk("periph_base %p\n", periph_base);
 				writel(0x4, periph_base + 0x28);
 				writel(0xc, periph_base + 0x28);
 			} else {
@@ -424,7 +424,7 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 
 		if (mipi_dsi_pdata) {
 			vsync_gpio = mipi_dsi_pdata->vsync_gpio;
-			pr_debug("%s: vsync_gpio=%d\n", __func__, vsync_gpio);
+			printk("%s: vsync_gpio=%d\n", __func__, vsync_gpio);
 
 			if (mdp_rev == MDP_REV_303 &&
 				mipi_dsi_pdata->dsi_client_reset) {
@@ -432,7 +432,7 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 					pr_err("%s: DSI Client Reset failed!\n",
 						__func__);
 				else
-					pr_debug("%s: DSI Client Reset success\n",
+					printk("%s: DSI Client Reset success\n",
 						__func__);
 			}
 		}

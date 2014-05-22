@@ -261,7 +261,7 @@ static int mipi_hx8389b_create_sysfs(struct platform_device *pdev)
 static int __devinit mipi_hx8389b_lcd_probe(struct platform_device *pdev)
 {
 	struct platform_device *pthisdev = NULL;
-	pr_debug("%s\n", __func__);
+	printk("%s\n", __func__);
 
 	if (pdev->id == 0) {
 		mipi_hx8389b_pdata = pdev->dev.platform_data;
@@ -361,13 +361,13 @@ int mipi_hx8389b_device_register(struct msm_panel_info *pinfo,
 	ret = platform_device_add_data(pdev, &hx8389b_panel_data,
 				sizeof(hx8389b_panel_data));
 	if (ret) {
-		pr_debug("%s: platform_device_add_data failed!\n", __func__);
+		printk("%s: platform_device_add_data failed!\n", __func__);
 		goto err_device_put;
 	}
 
 	ret = platform_device_add(pdev);
 	if (ret) {
-		pr_debug("%s: platform_device_register failed!\n", __func__);
+		printk("%s: platform_device_register failed!\n", __func__);
 		goto err_device_put;
 	}
 

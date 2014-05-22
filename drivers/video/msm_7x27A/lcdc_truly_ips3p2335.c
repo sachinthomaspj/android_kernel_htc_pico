@@ -104,7 +104,7 @@ static void spi_pin_assign(void)
 	spi_cs		= *(lcdc_truly_pdata->gpio_num + 2);
 	gpio_backlight_en = *(lcdc_truly_pdata->gpio_num + 3);
 	gpio_display_reset = *(lcdc_truly_pdata->gpio_num + 4);
-	pr_debug("spi_mosi:%d spi_sclk:%d spi_cs:%d backlight:%d reset:%d\n",
+	printk("spi_mosi:%d spi_sclk:%d spi_cs:%d backlight:%d reset:%d\n",
 		spi_mosi, spi_sclk, spi_cs, gpio_backlight_en,
 		gpio_display_reset);
 
@@ -120,7 +120,7 @@ static void truly_disp_powerup(void)
 
 static void truly_disp_reginit(void)
 {
-	pr_debug("%s disp_powered_up:%d display_on:%d\n", __func__,
+	printk("%s disp_powered_up:%d display_on:%d\n", __func__,
 			truly_state.disp_powered_up, truly_state.display_on);
 	if (truly_state.disp_powered_up && !truly_state.display_on) {
 		gpio_set_value_cansleep(spi_cs, 1);	/* cs high */
