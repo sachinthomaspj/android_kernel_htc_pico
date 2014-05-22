@@ -447,6 +447,9 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 	mfd = platform_get_drvdata(pdev);
 	if (!mfd)
 		return -ENODEV;
+
+	pdata = (struct msm_fb_panel_data *)mfd->pdev->dev.platform_data;
+
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 
