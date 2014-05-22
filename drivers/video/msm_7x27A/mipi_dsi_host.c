@@ -117,8 +117,8 @@ void mipi_dsi_enable_irq(u32 term)
 	}
 	if (dsi_irq_mask == 0) {
 		enable_irq(dsi_irq);
-		pr_debug("%s: IRQ Enable, mask=%x term=%x\n",
-				__func__, (int)dsi_irq_mask, (int)term);
+		//pr_debug("%s: IRQ Enable, mask=%x term=%x\n",
+		//		__func__, (int)dsi_irq_mask, (int)term);
 	}
 	dsi_irq_mask |= term;
 	spin_unlock_irqrestore(&dsi_irq_lock, flags);
@@ -136,8 +136,8 @@ void mipi_dsi_disable_irq(u32 term)
 	dsi_irq_mask &= ~term;
 	if (dsi_irq_mask == 0) {
 		disable_irq(dsi_irq);
-		pr_debug("%s: IRQ Disable, mask=%x term=%x\n",
-				__func__, (int)dsi_irq_mask, (int)term);
+		//pr_debug("%s: IRQ Disable, mask=%x term=%x\n",
+		//		__func__, (int)dsi_irq_mask, (int)term);
 	}
 	spin_unlock_irqrestore(&dsi_irq_lock, flags);
 }
@@ -152,8 +152,8 @@ void mipi_dsi_disable_irq_nosync(u32 term)
 	dsi_irq_mask &= ~term;
 	if (dsi_irq_mask == 0) {
 		disable_irq_nosync(dsi_irq);
-		pr_debug("%s: IRQ Disable, mask=%x term=%x\n",
-				__func__, (int)dsi_irq_mask, (int)term);
+		//pr_debug("%s: IRQ Disable, mask=%x term=%x\n",
+		//		__func__, (int)dsi_irq_mask, (int)term);
 	}
 	spin_unlock(&dsi_irq_lock);
 }
@@ -1647,7 +1647,7 @@ irqreturn_t mipi_dsi_isr(int irq, void *ptr)
 	isr = MIPI_INP(MIPI_DSI_BASE + 0x010c);
 	MIPI_OUTP(MIPI_DSI_BASE + 0x010c, isr);
 
-	pr_debug("%s: isr=%x\n", __func__, (int)isr);
+	//pr_debug("%s: isr=%x\n", __func__, (int)isr);
 
 #ifdef CONFIG_FB_MSM_MDP40
 	mdp4_stat.intr_dsi++;
