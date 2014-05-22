@@ -404,25 +404,8 @@ static struct dsi_cmd_desc samsung_bkl_disable_cmds[] = {
 		sizeof(bkl_disable_cmds), bkl_disable_cmds},
 };
 
-static int mipi_samsung_lcd_on(struct platform_device *pdev)
+void mipi_samsung_panel_type_detect(struct mipi_panel_info *mipi)
 {
-	struct msm_fb_data_type *mfd;
-	struct mipi_panel_info *mipi;
-	struct msm_panel_info *pinfo;
-
-	mfd = platform_get_drvdata(pdev);
-	if (!mfd)
-		return -ENODEV;
-	if (mfd->key != MFD_KEY)
-		return -EINVAL;
-
-	pinfo = &mfd->panel_info;
-	mipi  = &mfd->panel_info.mipi;
-
-	if (mfd->first_init_lcd != 0) {
-		PR_DISP_INFO("Display On - 1st time\n");
-
-	//Panel type detection (moved from mipi_samsung_panel_type_detect)
 	if (panel_type == PANEL_ID_PIO_SAMSUNG) {
 		PR_DISP_INFO("%s: panel_type=PANEL_ID_PIO_SAMSUNG\n", __func__);
 		strcat(ptype, "PANEL_ID_PIO_SAMSUNG");
@@ -450,7 +433,31 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 	} else {
 		printk(KERN_ERR "%s: panel_type=0x%x not support\n", __func__, panel_type);
 		strcat(ptype, "PANEL_ID_NONE");
-	} //Panel type detection ends here
+	}
+	return;
+}
+
+static int mipi_samsung_lcd_on(struct platform_device *pdev)
+{
+	struct msm_fb_data_type *mfd;
+	struct mipi_panel_info *mipi;
+	struct msm_panel_info *pinfo;
+	struct msm_fb_panel_data *pdata = NULL;
+
+	mfd = platform_get_drvdata(pdev);
+	if (!mfd)
+		return -ENODEV;
+	if (mfd->key != MFD_KEY)
+		return -EINVAL;
+
+	pinfo = &mfd->panel_info;
+	mipi  = &mfd->panel_info.mipi;
+
+	if (mfd->first_init_lcd != 0) {
+		PR_DISP_INFO("Display On - 1st time\n");
+
+		if (pdata && pdata->panel_type_detect)
+			pdata->panel_type_detect(mipi);
 
 		mfd->first_init_lcd = 0;
 
@@ -611,6 +618,7 @@ static struct msm_fb_panel_data samsung_panel_data = {
 	.display_on  = mipi_samsung_display_on,
 	.bklswitch	= mipi_samsung_bkl_switch,
 	.bklctrl	= mipi_samsung_bkl_ctrl,
+	.panel_type_detect = mipi_samsung_panel_type_detect,
 };
 
 static int ch_used[3];

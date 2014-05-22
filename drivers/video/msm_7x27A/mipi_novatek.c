@@ -459,11 +459,33 @@ static void mipi_novatek_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 	}
 }
 
+void mipi_novatek_panel_type_detect(struct mipi_panel_info *mipi)
+{
+if (panel_type == PANEL_ID_PIO_AUO) {
+		PR_DISP_INFO("%s: panel_type=PANEL_ID_PIO_AUO\n", __func__);
+		strcat(ptype, "PANEL_ID_PIO_AUO");
+		if (mipi->mode == DSI_VIDEO_MODE) {
+			mipi_power_on_cmd = pico_auo_video_on_cmds;
+			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_video_on_cmds);
+		} else {
+			mipi_power_on_cmd = pico_auo_cmd_on_cmds;
+			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_cmd_on_cmds);
+		}
+		mipi_power_off_cmd = novatek_display_off_cmds;
+		mipi_power_off_cmd_size = ARRAY_SIZE(novatek_display_off_cmds);
+	} else {
+		printk(KERN_ERR "%s: panel_type=0x%x not support\n", __func__, panel_type);
+		strcat(ptype, "PANEL_ID_NONE");
+	}
+	return;
+}
+
 static int mipi_novatek_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
 	struct mipi_panel_info *mipi;
 	struct msm_panel_info *pinfo;
+	struct msm_fb_panel_data *pdata = NULL;
 
 	mfd = platform_get_drvdata(pdev);
 	if (!mfd)
@@ -480,23 +502,8 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 	if (mfd->first_init_lcd != 0) {
 		PR_DISP_DEBUG("Display On - 1st time\n");
 
-	//Panel type detection (moved from mipi_novatek_panel_type_detect)
-	if (panel_type == PANEL_ID_PIO_AUO) {
-		PR_DISP_INFO("%s: panel_type=PANEL_ID_PIO_AUO\n", __func__);
-		strcat(ptype, "PANEL_ID_PIO_AUO");
-		if (mipi->mode == DSI_VIDEO_MODE) {
-			mipi_power_on_cmd = pico_auo_video_on_cmds;
-			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_video_on_cmds);
-		} else {
-			mipi_power_on_cmd = pico_auo_cmd_on_cmds;
-			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_cmd_on_cmds);
-		}
-		mipi_power_off_cmd = novatek_display_off_cmds;
-		mipi_power_off_cmd_size = ARRAY_SIZE(novatek_display_off_cmds);
-	} else {
-		printk(KERN_ERR "%s: panel_type=0x%x not support\n", __func__, panel_type);
-		strcat(ptype, "PANEL_ID_NONE");
-	} //Panel type detection ends here
+		if (pdata && pdata->panel_type_detect)
+			pdata->panel_type_detect(&pinfo->mipi);
 
 		mfd->first_init_lcd = 0;
 
@@ -583,6 +590,7 @@ static struct msm_fb_panel_data novatek_panel_data = {
 	.display_on  = mipi_novatek_display_on,
 	.bklswitch	= mipi_novatek_bkl_switch,
 	.bklctrl	= mipi_novatek_bkl_ctrl,
+	.panel_type_detect = mipi_novatek_panel_type_detect,
 };
 
 static ssize_t mipi_dsi_3d_barrier_read(struct device *dev,
