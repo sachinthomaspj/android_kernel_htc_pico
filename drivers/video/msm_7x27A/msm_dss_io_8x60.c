@@ -195,7 +195,7 @@ static void mipi_dsi_ahb_en(void)
 
 	ahb = mmss_cc_base + 0x08;
 
-	printk("%s: ahb=%x %x\n",
+	pr_debug("%s: ahb=%x %x\n",
 		__func__, (int) ahb, MIPI_INP_SECURE(ahb));
 }
 
@@ -677,9 +677,9 @@ void hdmi_msm_phy_status_poll(void)
 	unsigned int phy_ready;
 	phy_ready = 0x1 & HDMI_INP_ND(0x33c);
 	if (phy_ready) {
-		printk("HDMI Phy Status bit is set and ready\n");
+		pr_debug("HDMI Phy Status bit is set and ready\n");
 	} else {
-		printk("HDMI Phy Status bit is not set,"
+		pr_debug("HDMI Phy Status bit is not set,"
 			"waiting for ready status\n");
 		do {
 			phy_ready = 0x1 & HDMI_INP_ND(0x33c);

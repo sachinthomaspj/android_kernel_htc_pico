@@ -52,7 +52,7 @@ static int __init mipi_chimei_wxga_init(void)
 	if (msm_fb_detect_client("mipi_video_chimei_wxga"))
 		return 0;
 
-	printk("mipi-dsi chimei wxga (1366x768) driver ver 1.0.\n");
+	pr_debug("mipi-dsi chimei wxga (1366x768) driver ver 1.0.\n");
 	
 	pinfo->xres = 1366;
 	pinfo->yres = 768;

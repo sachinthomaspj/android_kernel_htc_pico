@@ -155,7 +155,7 @@ static void mipi_truly_set_backlight(struct msm_fb_data_type *mfd)
 	} else if (bl_level < prev_bl) {
 		step = bl_level + 16 - prev_bl;
 	} else {
-		printk("%s: no change\n", __func__);
+		pr_debug("%s: no change\n", __func__);
 		return;
 	}
 

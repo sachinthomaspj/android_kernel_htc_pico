@@ -1122,7 +1122,7 @@ static void mdp_hist_read_work(struct work_struct *data)
 	bool hist_ready;
 	mutex_lock(&mgmt->mdp_hist_mutex);
 	if (mgmt->mdp_is_hist_data == FALSE) {
-		printk("%s, Histogram disabled before read.\n", __func__);
+		pr_debug("%s, Histogram disabled before read.\n", __func__);
 		ret = -EINVAL;
 		goto error;
 	}
@@ -1266,10 +1266,10 @@ static int mdp_do_histogram(struct fb_info *info,
 		if (!ret) {
 			mgmt->hist = NULL;
 			ret = -ETIMEDOUT;
-			printk("%s: bin collection timedout", __func__);
+			pr_debug("%s: bin collection timedout", __func__);
 		} else {
 			mgmt->hist = NULL;
-			printk("%s: bin collection interrupted", __func__);
+			pr_debug("%s: bin collection interrupted", __func__);
 		}
 		goto error;
 	}
@@ -1539,7 +1539,7 @@ void mdp_clk_ctrl(int on)
 				mdp_clk_disable_unprepare();
 		}
 	}
-	printk("%s: on=%d cnt=%d\n", __func__, on, mdp_clk_cnt);
+	pr_debug("%s: on=%d cnt=%d\n", __func__, on, mdp_clk_cnt);
 	mutex_unlock(&mdp_suspend_mutex);
 }
 
@@ -2038,7 +2038,7 @@ static int mdp_off(struct platform_device *pdev)
 	int ret = 0;
 	struct msm_fb_data_type *mfd = platform_get_drvdata(pdev);
 
-	printk("%s:+\n", __func__);
+	pr_debug("%s:+\n", __func__);
 	mdp_histogram_ctrl_all(FALSE);
 	atomic_set(&vsync_cntrl.suspend, 1);
 	atomic_set(&vsync_cntrl.vsync_resume, 0);
@@ -2060,7 +2060,7 @@ static int mdp_off(struct platform_device *pdev)
 
 	if (mdp_rev >= MDP_REV_41 && mfd->panel.type == MIPI_CMD_PANEL)
 		mdp_dsi_cmd_overlay_suspend(mfd);
-	printk("%s:-\n", __func__);
+	pr_debug("%s:-\n", __func__);
 	return ret;
 }
 
@@ -2090,7 +2090,7 @@ static int mdp_on(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	mfd = platform_get_drvdata(pdev);
 
-	printk("%s:+\n", __func__);
+	pr_debug("%s:+\n", __func__);
 
 	if (mdp_rev >= MDP_REV_40) {
 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
@@ -2126,7 +2126,7 @@ static int mdp_on(struct platform_device *pdev)
 			}
 
 			kobject_uevent(&vsync_cntrl.dev->kobj, KOBJ_ADD);
-			printk("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
+			pr_debug("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
 			vsync_cntrl.sysfs_created = 1;
 		}
 		atomic_set(&vsync_cntrl.suspend, 0);
@@ -2138,7 +2138,7 @@ static int mdp_on(struct platform_device *pdev)
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
 
 	mdp_histogram_ctrl_all(TRUE);
-	printk("%s:-\n", __func__);
+	pr_debug("%s:-\n", __func__);
 
 	return ret;
 }
@@ -2186,7 +2186,7 @@ int mdp_bus_scale_update_request(uint32_t index)
 		return -EINVAL;
 	}
 	if (mdp_bus_scale_handle < 1) {
-		printk("%s invalid bus handle\n", __func__);
+		pr_debug("%s invalid bus handle\n", __func__);
 		return -EINVAL;
 	}
 	return msm_bus_scale_client_update_request(mdp_bus_scale_handle,
@@ -2202,7 +2202,7 @@ int mdp_set_core_clk(u32 rate)
 	if (ret)
 		pr_err("%s unable to set mdp clk rate", __func__);
 	else
-		printk("%s mdp clk rate to be set %d: actual rate %ld\n",
+		pr_debug("%s mdp clk rate to be set %d: actual rate %ld\n",
 			__func__, rate, clk_get_rate(mdp_clk));
 	return ret;
 }
@@ -2810,11 +2810,11 @@ void mdp_footswitch_ctrl(boolean on)
 	}
 
 	if (on && !mdp_footswitch_on) {
-		printk("Enable MDP FS\n");
+		pr_debug("Enable MDP FS\n");
 		regulator_enable(footswitch);
 		mdp_footswitch_on = 1;
 	} else if (!on && mdp_footswitch_on) {
-		printk("Disable MDP FS\n");
+		pr_debug("Disable MDP FS\n");
 		regulator_disable(footswitch);
 		mdp_footswitch_on = 0;
 	}

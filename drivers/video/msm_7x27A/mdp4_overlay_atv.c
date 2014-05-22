@@ -100,7 +100,7 @@ int mdp4_atv_on(struct platform_device *pdev)
 	if (mfd->map_buffer) {
 		pipe->srcp0_addr = (unsigned int)mfd->map_buffer->iova[0] + \
 			buf_offset;
-		printk("start 0x%lx srcp0_addr 0x%x\n", mfd->
+		pr_debug("start 0x%lx srcp0_addr 0x%x\n", mfd->
 			map_buffer->iova[0], pipe->srcp0_addr);
 	} else {
 		pipe->srcp0_addr = (uint32)(buf + buf_offset);
@@ -179,7 +179,7 @@ void mdp4_atv_overlay(struct msm_fb_data_type *mfd)
 	if (mfd->map_buffer) {
 		pipe->srcp0_addr = (unsigned int)mfd->map_buffer->iova[0] + \
 			buf_offset;
-		printk("start 0x%lx srcp0_addr 0x%x\n", mfd->
+		pr_debug("start 0x%lx srcp0_addr 0x%x\n", mfd->
 			map_buffer->iova[0], pipe->srcp0_addr);
 	} else {
 		pipe->srcp0_addr = (uint32)(buf + buf_offset);

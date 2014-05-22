@@ -207,7 +207,7 @@ void mdp4_writeback_dma_busy_wait(struct msm_fb_data_type *mfd)
 
 	if (need_wait) {
 		/* wait until DMA finishes the current job */
-		printk("%s: pending pid=%d\n",
+		pr_debug("%s: pending pid=%d\n",
 				__func__, current->pid);
 		wait_for_completion(&mfd->dma->comp);
 	}
@@ -222,7 +222,7 @@ void mdp4_overlay1_done_writeback(struct mdp_dma_data *dma)
 	mdp_disable_irq_nosync(MDP_OVERLAY2_TERM);
 	spin_unlock(&mdp_spin_lock);
 	complete_all(&dma->comp);
-	printk("%s ovdone interrupt\n", __func__);
+	pr_debug("%s ovdone interrupt\n", __func__);
 
 }
 void mdp4_writeback_overlay_kickoff(struct msm_fb_data_type *mfd,
@@ -242,7 +242,7 @@ void mdp4_writeback_overlay_kickoff(struct msm_fb_data_type *mfd,
 	/* start OVERLAY pipe */
 	mdp_pipe_kickoff(MDP_OVERLAY2_TERM, mfd);
 	wmb();
-	printk("%s: before ov done interrupt\n", __func__);
+	pr_debug("%s: before ov done interrupt\n", __func__);
 }
 void mdp4_writeback_dma_stop(struct msm_fb_data_type *mfd)
 {
@@ -289,7 +289,7 @@ void mdp4_writeback_kickoff_video(struct msm_fb_data_type *mfd,
 	if (writeback_pipe->blt_cnt == 0)
 		mdp4_overlay_writeback_update(mfd);
 
-	printk("%s: pid=%d\n", __func__, current->pid);
+	pr_debug("%s: pid=%d\n", __func__, current->pid);
 
 	mdp4_mixer_stage_commit(pipe->mixer_num);
 
@@ -312,7 +312,7 @@ void mdp4_writeback_kickoff_ui(struct msm_fb_data_type *mfd,
 {
 	mdp4_mixer_stage_commit(pipe->mixer_num);
 
-	printk("%s: pid=%d\n", __func__, current->pid);
+	pr_debug("%s: pid=%d\n", __func__, current->pid);
 	mdp4_writeback_overlay_kickoff(mfd, pipe);
 }
 
@@ -339,7 +339,7 @@ void mdp4_writeback_overlay(struct msm_fb_data_type *mfd)
 	writeback_pipe->ov_blt_addr = (ulong) (node ? node->addr : NULL);
 
 	mutex_lock(&mfd->dma->ov_mutex);
-	printk("%s in writeback\n", __func__);
+	pr_debug("%s in writeback\n", __func__);
 	if (writeback_pipe && !writeback_pipe->ov_blt_addr) {
 		pr_err("%s: no writeback buffer 0x%x\n", __func__,
 				(unsigned int)writeback_pipe->ov_blt_addr);
@@ -351,10 +351,10 @@ void mdp4_writeback_overlay(struct msm_fb_data_type *mfd)
 	}
 
 	if (mfd && mfd->panel_power_on) {
-		printk("%s in before busy wait\n", __func__);
+		pr_debug("%s in before busy wait\n", __func__);
 		mdp4_writeback_dma_busy_wait(mfd);
 
-		printk("%s in before update\n", __func__);
+		pr_debug("%s in before update\n", __func__);
 		ret = mdp4_overlay_writeback_update(mfd);
 		if (ret) {
 			pr_err("%s: update failed writeback pipe NULL\n",
@@ -362,7 +362,7 @@ void mdp4_writeback_overlay(struct msm_fb_data_type *mfd)
 			goto fail_no_blt_addr;
 		}
 
-		printk("%s: in writeback pan display 0x%x\n", __func__,
+		pr_debug("%s: in writeback pan display 0x%x\n", __func__,
 				(unsigned int)writeback_pipe->ov_blt_addr);
 		mdp4_writeback_kickoff_ui(mfd, writeback_pipe);
 		mdp4_iommu_unmap(writeback_pipe);

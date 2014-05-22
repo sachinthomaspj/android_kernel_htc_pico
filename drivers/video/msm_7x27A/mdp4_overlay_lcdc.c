@@ -85,7 +85,7 @@ static void vsync_irq_enable(int intr, int term)
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_enable_irq(term);
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
-	printk("%s: IRQ-en done, term=%x\n", __func__, term);
+	pr_debug("%s: IRQ-en done, term=%x\n", __func__, term);
 }
 
 static void vsync_irq_disable(int intr, int term)
@@ -98,7 +98,7 @@ static void vsync_irq_disable(int intr, int term)
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_disable_irq_nosync(term);
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
-	printk("%s: IRQ-dis done, term=%x\n", __func__, term);
+	pr_debug("%s: IRQ-dis done, term=%x\n", __func__, term);
 }
 
 static void mdp4_overlay_lcdc_start(void)
@@ -139,7 +139,7 @@ void mdp4_lcdc_pipe_queue(int cndx, struct mdp4_overlay_pipe *pipe)
 
 	pp = &vp->plist[pipe->pipe_ndx - 1];	/* ndx start form 1 */
 
-	printk("%s: vndx=%d pipe_ndx=%d pid=%d\n", __func__,
+	pr_debug("%s: vndx=%d pipe_ndx=%d pid=%d\n", __func__,
 			undx, pipe->pipe_ndx, current->pid);
 
 	*pp = *pipe;	/* clone it */
@@ -270,7 +270,7 @@ void mdp4_lcdc_vsync_ctrl(struct fb_info *info, int enable)
 	if (vctrl->vsync_irq_enabled == enable)
 		return;
 
-	printk("%s: vsync enable=%d\n", __func__, enable);
+	pr_debug("%s: vsync enable=%d\n", __func__, enable);
 
 	vctrl->vsync_irq_enabled = enable;
 
@@ -652,7 +652,7 @@ int mdp4_lcdc_on(struct platform_device *pdev)
 		}
 
 		kobject_uevent(&vctrl->dev->kobj, KOBJ_ADD);
-		printk("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
+		pr_debug("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
 		vctrl->sysfs_created = 1;
 	}
 
@@ -780,7 +780,7 @@ void mdp4_primary_vsync_lcdc(void)
 
 	cndx = 0;
 	vctrl = &vsync_ctrl_db[cndx];
-	printk("%s: cpu=%d\n", __func__, smp_processor_id());
+	pr_debug("%s: cpu=%d\n", __func__, smp_processor_id());
 	vctrl->vsync_time = ktime_get();
 
 	spin_lock(&vctrl->spin_lock);
@@ -938,7 +938,7 @@ void mdp4_lcdc_overlay(struct msm_fb_data_type *mfd)
 	if (!pipe || !mfd->panel_power_on)
 		return;
 
-	printk("%s: cpu=%d pid=%d\n", __func__,
+	pr_debug("%s: cpu=%d pid=%d\n", __func__,
 			smp_processor_id(), current->pid);
 	if (pipe->pipe_type == OVERLAY_TYPE_RGB) {
 		bpp = fbi->var.bits_per_pixel / 8;

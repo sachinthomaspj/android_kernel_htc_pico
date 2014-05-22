@@ -265,7 +265,7 @@ int mdp_dsi_video_on(struct platform_device *pdev)
 		}
 
 		kobject_uevent(&vsync_cntrl.dev->kobj, KOBJ_ADD);
-		printk("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
+		pr_debug("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
 		vsync_cntrl.sysfs_created = 1;
 	}
 	mdp_histogram_ctrl_all(TRUE);

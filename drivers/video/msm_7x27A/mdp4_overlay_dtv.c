@@ -97,7 +97,7 @@ static void vsync_irq_enable(int intr, int term)
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_enable_irq(term);
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
-	printk("%s: IRQ-en done, term=%x\n", __func__, term);
+	pr_debug("%s: IRQ-en done, term=%x\n", __func__, term);
 }
 
 static void vsync_irq_disable(int intr, int term)
@@ -110,7 +110,7 @@ static void vsync_irq_disable(int intr, int term)
 	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 	mdp_disable_irq_nosync(term);
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
-	printk("%s: IRQ-dis done, term=%x\n", __func__, term);
+	pr_debug("%s: IRQ-dis done, term=%x\n", __func__, term);
 }
 
 void mdp4_overlay_dtv_start(void)
@@ -153,7 +153,7 @@ void mdp4_dtv_pipe_queue(int cndx, struct mdp4_overlay_pipe *pipe)
 
 	pp = &vp->plist[pipe->pipe_ndx - 1];	/* ndx start form 1 */
 
-	printk("%s: vndx=%d pipe_ndx=%d flags=%x pid=%d\n",
+	pr_debug("%s: vndx=%d pipe_ndx=%d flags=%x pid=%d\n",
 		 __func__, undx, pipe->pipe_ndx, pipe->flags, current->pid);
 
 	*pp = *pipe;	/* clone it */
@@ -252,7 +252,7 @@ void mdp4_dtv_vsync_ctrl(struct fb_info *info, int enable)
 	if (vctrl->vsync_irq_enabled == enable)
 		return;
 
-	printk("%s: vsync enable=%d\n", __func__, enable);
+	pr_debug("%s: vsync enable=%d\n", __func__, enable);
 
 	vctrl->vsync_irq_enabled = enable;
 
@@ -581,7 +581,7 @@ int mdp4_dtv_on(struct platform_device *pdev)
 		}
 
 		kobject_uevent(&vctrl->dev->kobj, KOBJ_ADD);
-		printk("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
+		pr_debug("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
 		vctrl->sysfs_created = 1;
 	}
 	pr_info("%s:\n", __func__);
@@ -834,7 +834,7 @@ void mdp4_external_vsync_dtv(void)
 
 	cndx = 0;
 	vctrl = &vsync_ctrl_db[cndx];
-	printk("%s: cpu=%d\n", __func__, smp_processor_id());
+	pr_debug("%s: cpu=%d\n", __func__, smp_processor_id());
 	vctrl->vsync_time = ktime_get();
 
 	spin_lock(&vctrl->spin_lock);
@@ -862,7 +862,7 @@ void mdp4_dmae_done_dtv(void)
 
 	vctrl = &vsync_ctrl_db[cndx];
 	pipe = vctrl->base_pipe;
-	printk("%s: cpu=%d\n", __func__, smp_processor_id());
+	pr_debug("%s: cpu=%d\n", __func__, smp_processor_id());
 
 	spin_lock(&vctrl->spin_lock);
 	if (vctrl->blt_change) {
