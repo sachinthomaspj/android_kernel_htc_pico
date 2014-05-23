@@ -77,8 +77,10 @@ static void pico_panel_power(int on)
 {
 
 	PR_DISP_INFO("%s: power %s.\n", __func__, on ? "on" : "off");
+	printk("%s: chkpt 1",__func__);
 
 	if (on) {
+		printk("%s: chkpt 2",__func__);
 		gpio_set_value(PICO_GPIO_LCM_2v85_EN, 1);
 		hr_msleep(20);
 		gpio_set_value(PICO_GPIO_LCM_1v8_EN, 1);
@@ -88,6 +90,7 @@ static void pico_panel_power(int on)
 		gpio_set_value(PICO_GPIO_LCD_RST_N, 1);
 		hr_msleep(5);
 	} else {
+		printk("%s: chkpt 3",__func__);
 		gpio_set_value(PICO_GPIO_LCD_RST_N, 0);
 
 		gpio_set_value(PICO_GPIO_LCM_2v85_EN, 0);
@@ -98,16 +101,23 @@ static void pico_panel_power(int on)
 
 static int mipi_panel_power(int on)
 {
+	printk("%s: chkpt 1",__func__);
 	int flag_on = !!on;
 	static int mipi_power_save_on = 1;
 
 	if (mipi_power_save_on == flag_on)
+	{
+		printk("%s: chkpt 2",__func__);
 		return 0;
+	}
 
 	mipi_power_save_on = flag_on;
 
 	if (init_pico != 0)
+	{
+		printk("%s: chkpt 3",__func__);
 		pico_panel_power(on);
+	}
 
 	return 0;
 }
