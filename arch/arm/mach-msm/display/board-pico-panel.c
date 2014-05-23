@@ -37,7 +37,7 @@
 #include "../../../../drivers/video/msm/mdp_hw.h"
 
 extern int panel_type;
-int init_pico = 0;
+static int mipi_power_save_on = 1;
 
 void mdp_color_enhancement(struct mdp_reg *reg_seq, int size);
 
