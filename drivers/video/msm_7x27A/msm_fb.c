@@ -1115,11 +1115,11 @@ void msm_fb_display_on(struct msm_fb_data_type *mfd)
 
                 pdata->display_on(mfd);
 
-		if (pdata->bklctrl)
-			pdata->bklctrl(mfd, true);
-
                 up(&mfd->sem);
 
+		hr_msleep(40);
+		if (pdata->bklctrl)
+			pdata->bklctrl(mfd, true);
 		if (pdata->bklswitch)
 			pdata->bklswitch(mfd, true);
         }
