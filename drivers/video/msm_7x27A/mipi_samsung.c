@@ -469,8 +469,10 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 		if (panel_type != PANEL_ID_NONE) {
 			PR_DISP_INFO("%s\n", ptype);
 
+			htc_mdp_sem_down(current, &mfd->dma->mutex);
 			mipi_dsi_cmds_tx(&samsung_tx_buf, mipi_power_on_cmd,
 				mipi_power_on_cmd_size);
+			htc_mdp_sem_up(&mfd->dma->mutex);
 		} else {
 			printk(KERN_ERR "panel_type=0x%x not support at power on\n", panel_type);
 			return -EINVAL;
@@ -523,6 +525,7 @@ static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
 		led_pwm1[1] = 0;
 	}
 
+	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	if (mipi->mode == DSI_VIDEO_MODE) {
 		mipi_dsi_cmd_mode_ctrl(1);	/* enable cmd mode */
 		mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_cmd_backlight_cmds,
@@ -533,6 +536,7 @@ static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
 		mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_cmd_backlight_cmds,
 			ARRAY_SIZE(samsung_cmd_backlight_cmds));
 	}
+	htc_mdp_sem_up(&mfd->dma->mutex);
 
 	if (led_pwm1[1] != 0)
 		bl_level_prevset = level;
@@ -554,9 +558,11 @@ static void mipi_samsung_set_backlight(struct msm_fb_data_type *mfd)
 static void mipi_samsung_display_on(struct msm_fb_data_type *mfd)
 {
 	PR_DISP_DEBUG("%s+\n", __func__);
+	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
 	mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_display_on_cmds,
 		ARRAY_SIZE(samsung_display_on_cmds));
+	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 
 static void mipi_samsung_bkl_switch(struct msm_fb_data_type *mfd, bool on)
@@ -584,6 +590,7 @@ static void mipi_samsung_bkl_switch(struct msm_fb_data_type *mfd, bool on)
 static void mipi_samsung_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 {
 	PR_DISP_INFO("mipi_samsung_bkl_ctrl > on = %x\n", on);
+	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	if (on) {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
 		mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_bkl_enable_cmds,
@@ -593,6 +600,7 @@ static void mipi_samsung_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 		mipi_dsi_cmds_tx(&samsung_tx_buf, samsung_bkl_disable_cmds,
 			ARRAY_SIZE(samsung_bkl_disable_cmds));
 	}
+	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 
 static int mipi_samsung_lcd_probe(struct platform_device *pdev)
