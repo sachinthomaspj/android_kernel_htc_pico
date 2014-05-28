@@ -42,27 +42,28 @@ static int mipi_power_save_on = 1;
 void mdp_color_enhancement(struct mdp_reg *reg_seq, int size);
 
 struct mdp_reg pico_color_enhancement[] = {
-	{0x93400, 0x0211, 0x0},
-	{0x93404, 0xFFF2, 0x0},
-	{0x93408, 0xFFFF, 0x0},
-	{0x9340C, 0xFFF8, 0x0},
-	{0x93410, 0x0209, 0x0},
-	{0x93414, 0xFFFC, 0x0},
-	{0x93418, 0xFFF8, 0x0},
-	{0x9341C, 0xFFF4, 0x0},
-	{0x93420, 0x0217, 0x0},
-	{0x93600, 0x0000, 0x0},
-	{0x93604, 0x00FF, 0x0},
-	{0x93608, 0x0000, 0x0},
-	{0x9360C, 0x00FF, 0x0},
-	{0x93610, 0x0000, 0x0},
-	{0x93614, 0x00FF, 0x0},
-	{0x93680, 0x0000, 0x0},
-	{0x93684, 0x00FF, 0x0},
-	{0x93688, 0x0000, 0x0},
-	{0x9368C, 0x00FF, 0x0},
-	{0x93690, 0x0000, 0x0},
-	{0x93694, 0x00FF, 0x0},
+	{0x93400, 0x00024C, 0x0},
+	{0x93404, 0xFFFFDA, 0x0},
+	{0x93408, 0xFFFFDA, 0x0},
+	{0x9340C, 0xFFFFDA, 0x0},
+	{0x93410, 0x00024C, 0x0},
+	{0x93414, 0xFFFFDA, 0x0},
+	{0x93418, 0xFFFFDA, 0x0},
+	{0x9341C, 0xFFFFDA, 0x0},
+	{0x93420, 0x00024C, 0x0},
+	{0x93600, 0x000000, 0x0},
+	{0x93604, 0x0000FF, 0x0},
+	{0x93608, 0x000000, 0x0},
+	{0x9360C, 0x0000FF, 0x0},
+	{0x93610, 0x000000, 0x0},
+	{0x93614, 0x0000FF, 0x0},
+	{0x93680, 0x000000, 0x0},
+	{0x93684, 0x0000FF, 0x0},
+	{0x93688, 0x000000, 0x0},
+	{0x9368C, 0x0000FF, 0x0},
+	{0x93690, 0x000000, 0x0},
+	{0x93694, 0x0000FF, 0x0},
+	{0x90070, 0x08, 0x0},
 };
 
 int pico_mdp_color_enhancement(void)
@@ -76,10 +77,8 @@ static void pico_panel_power(int on)
 {
 
 	PR_DISP_INFO("%s: power %s.\n", __func__, on ? "on" : "off");
-	printk("%s: chkpt 1",__func__);
 
 	if (on) {
-		printk("%s: chkpt 2",__func__);
 		gpio_set_value(PICO_GPIO_LCM_2v85_EN, 1);
 		hr_msleep(20);
 		gpio_set_value(PICO_GPIO_LCM_1v8_EN, 1);
@@ -89,7 +88,6 @@ static void pico_panel_power(int on)
 		gpio_set_value(PICO_GPIO_LCD_RST_N, 1);
 		hr_msleep(5);
 	} else {
-		printk("%s: chkpt 3",__func__);
 		gpio_set_value(PICO_GPIO_LCD_RST_N, 0);
 
 		gpio_set_value(PICO_GPIO_LCM_2v85_EN, 0);
@@ -100,15 +98,10 @@ static void pico_panel_power(int on)
 
 static int mipi_panel_power(int on)
 {
-	printk("%s: chkpt 1",__func__);
 	int flag_on = !!on;
 
 	if (mipi_power_save_on == flag_on)
-	{
-		printk("%s: chkpt 2",__func__);
 		return 0;
-	}
-	printk("%s: chkpt 3",__func__);
 
 	mipi_power_save_on = flag_on;
 
@@ -135,6 +128,7 @@ static struct mipi_dsi_platform_data mipi_dsi_pdata = {
 	.vsync_gpio		= 97,
 	.dsi_power_save		= mipi_panel_power,
 	.get_lane_config	= msm_fb_get_lane_config,
+	.dlane_swap 		= 0x01,
 };
 
 #define BRI_SETTING_MIN                 30
@@ -222,6 +216,7 @@ static struct platform_device msm_fb_device = {
 };
 
 static struct msm_panel_common_pdata mdp_pdata = {
+	.cont_splash_enabled = 0x00,
 	.gpio = 97,
 	.mdp_rev = MDP_REV_303,
 	.mdp_color_enhance = pico_mdp_color_enhancement,

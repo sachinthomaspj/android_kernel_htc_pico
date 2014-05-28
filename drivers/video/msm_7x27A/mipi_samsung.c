@@ -440,24 +440,21 @@ void mipi_samsung_panel_type_detect(struct mipi_panel_info *mipi)
 static int mipi_samsung_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
-	struct mipi_panel_info *mipi;
-	struct msm_panel_info *pinfo;
 	struct msm_fb_panel_data *pdata = NULL;
+	struct mipi_panel_info *mipi;
 
 	mfd = platform_get_drvdata(pdev);
 	if (!mfd)
 		return -ENODEV;
-
 	pdata = (struct msm_fb_panel_data *)mfd->pdev->dev.platform_data;
 
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 
-	pinfo = &mfd->panel_info;
 	mipi  = &mfd->panel_info.mipi;
 
 	if (mfd->first_init_lcd != 0) {
-		PR_DISP_INFO("Display On - 1st time\n");
+		printk("Display On - 1st time\n");
 
 		if (pdata && pdata->panel_type_detect)
 			pdata->panel_type_detect(mipi);
@@ -465,7 +462,7 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 		mfd->first_init_lcd = 0;
 
 	} else {
-		PR_DISP_INFO("Display On \n");
+		printk("Display On \n");
 		if (panel_type != PANEL_ID_NONE) {
 			PR_DISP_INFO("%s\n", ptype);
 
@@ -478,8 +475,8 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 			return -EINVAL;
 		}
 	}
-	PR_DISP_DEBUG("Init done!\n");
 
+	PR_DISP_INFO("Init done!\n");
 	return 0;
 }
 
