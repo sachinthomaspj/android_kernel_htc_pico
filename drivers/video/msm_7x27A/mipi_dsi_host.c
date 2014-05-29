@@ -1059,13 +1059,13 @@ static struct dsi_cmd_desc dsi_tear_off_cmd = {
 void mipi_dsi_set_tear_on(struct msm_fb_data_type *mfd)
 {
 	mipi_dsi_buf_init(&dsi_tx_buf);
-	mipi_dsi_cmds_tx(&dsi_tx_buf, &dsi_tear_on_cmd, 1);
+	mipi_dsi_cmds_tx(mfd, &dsi_tx_buf, &dsi_tear_on_cmd, 1);
 }
 
 void mipi_dsi_set_tear_off(struct msm_fb_data_type *mfd)
 {
 	mipi_dsi_buf_init(&dsi_tx_buf);
-	mipi_dsi_cmds_tx(&dsi_tx_buf, &dsi_tear_off_cmd, 1);
+	mipi_dsi_cmds_tx(mfd, &dsi_tx_buf, &dsi_tear_off_cmd, 1);
 }
 
 void mipi_dsi_cmd_mode_ctrl(int enable)
@@ -1112,7 +1112,8 @@ int mipi_dsi_cmd_reg_tx(uint32 data)
 	return 4;
 }
 
-int mipi_dsi_cmds_tx(struct dsi_buf *tp, struct dsi_cmd_desc *cmds, int cnt)
+int mipi_dsi_cmds_tx(struct msm_fb_data_type *mfd,
+		struct dsi_buf *tp, struct dsi_cmd_desc *cmds, int cnt)
 {
 	struct dsi_cmd_desc *cm;
 	uint32 dsi_ctrl, ctrl;
@@ -1125,6 +1126,15 @@ int mipi_dsi_cmds_tx(struct dsi_buf *tp, struct dsi_cmd_desc *cmds, int cnt)
 		ctrl = dsi_ctrl | 0x04; 
 		MIPI_OUTP(MIPI_DSI_BASE + 0x0000, ctrl);
 	}
+	else {
+		if (mfd->panel_info.type == MIPI_CMD_PANEL) {
+#ifndef CONFIG_FB_MSM_MDP303
+		mdp4_dsi_cmd_dma_busy_wait(mfd);
+#else
+		mdp3_dsi_cmd_dma_busy_wait(mfd);
+#endif
+		}
+	}	
 
 	spin_lock_irqsave(&dsi_mdp_lock, flag);
 	dsi_mdp_busy = TRUE;
@@ -1452,6 +1462,7 @@ void mipi_dsi_cmd_mdp_busy(void)
 		wait_for_completion(&dsi_mdp_comp);
 }
 
+/*
 struct dcs_cmd_req *mipi_dsi_cmdlist_get(void)
 {
 	struct dcs_cmd_req *req = NULL;
@@ -1466,6 +1477,7 @@ struct dcs_cmd_req *mipi_dsi_cmdlist_get(void)
 	}
 	return req;
 }
+
 void mipi_dsi_cmdlist_tx(struct dcs_cmd_req *req)
 {
 	struct dsi_buf *tp;
@@ -1558,6 +1570,7 @@ int mipi_dsi_cmdlist_put(struct dcs_cmd_req *cmdreq)
 
 	return ret;
 }
+*/
 
 void mipi_dsi_irq_set(uint32 mask, uint32 irq)
 {
