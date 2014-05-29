@@ -1462,7 +1462,6 @@ void mipi_dsi_cmd_mdp_busy(void)
 		wait_for_completion(&dsi_mdp_comp);
 }
 
-/*
 struct dcs_cmd_req *mipi_dsi_cmdlist_get(void)
 {
 	struct dcs_cmd_req *req = NULL;
@@ -1480,12 +1479,13 @@ struct dcs_cmd_req *mipi_dsi_cmdlist_get(void)
 
 void mipi_dsi_cmdlist_tx(struct dcs_cmd_req *req)
 {
+	struct msm_fb_data_type *mfd;
 	struct dsi_buf *tp;
 	int ret;
 
 	mipi_dsi_buf_init(&dsi_tx_buf);
 	tp = &dsi_tx_buf;
-	ret = mipi_dsi_cmds_tx(tp, req->cmds, req->cmds_cnt);
+	ret = mipi_dsi_cmds_tx(mfd, tp, req->cmds, req->cmds_cnt);
 
 	if (req->cb)
 		req->cb(ret);
