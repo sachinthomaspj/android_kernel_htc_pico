@@ -1,5 +1,3 @@
-EXTRA_CFLAGS := -DDEBUG
-
 ifeq ($(CONFIG_FB_MSM_MDSS),y)
 obj-y += mdss/
 else
