@@ -487,6 +487,9 @@ struct msm_panel_common_pdata {
 	char cont_splash_enabled;
 	char mdp_iommu_split_domain;
 #endif
+	u32 splash_screen_addr;
+	u32 splash_screen_size;
+	u32 avtimer_phy;
 };
 
 struct lcdc_platform_data {
@@ -529,7 +532,6 @@ enum mipi_dsi_3d_ctrl {
 	FPGA_SPI_INTF,
 };
 
-#if defined(CONFIG_FB_MSM8960) || (!defined(CONFIG_ARCH_MSM8X60) && !defined(CONFIG_ARCH_MSM7X27A))
 /* DSI PHY configuration */
 struct mipi_dsi_phy_ctrl {
 	uint32_t regulator[5];
@@ -538,7 +540,6 @@ struct mipi_dsi_phy_ctrl {
 	uint32_t strength[4];
 	uint32_t pll[21];
 };
-#endif
 
 struct mipi_dsi_panel_platform_data {
 	int fpga_ctrl_mode;

@@ -68,7 +68,7 @@ struct mdp_reg pico_color_enhancement[] = {
 
 int pico_mdp_color_enhancement(void)
 {
-	mdp_color_enhancement(pico_color_enhancement, ARRAY_SIZE(pico_color_enhancement));
+//	mdp_color_enhancement(pico_color_enhancement, ARRAY_SIZE(pico_color_enhancement));
 	
 	return 0;
 }
