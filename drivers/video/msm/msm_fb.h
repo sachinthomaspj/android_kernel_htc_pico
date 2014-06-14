@@ -78,6 +78,7 @@ struct msm_fb_data_type {
 
 	panel_id_type panel;
 	struct msm_panel_info panel_info;
+	int first_init_lcd;
 
 	DISP_TARGET dest;
 	struct fb_info *fbi;

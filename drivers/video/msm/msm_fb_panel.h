@@ -198,10 +198,15 @@ struct msm_fb_panel_data {
 	void (*set_backlight) (struct msm_fb_data_type *);
 
 	/* function entry chain */
+ 	void (*display_on) (struct msm_fb_data_type *);
+ 	void (*display_off) (struct msm_fb_data_type *);
+ 	void (*bklswitch) (struct msm_fb_data_type *, bool on);
+	void (*bklctrl) (struct msm_fb_data_type *, bool on);
 	int (*on) (struct platform_device *pdev);
 	int (*off) (struct platform_device *pdev);
 	int (*late_init) (struct platform_device *pdev);
 	int (*power_ctrl) (boolean enable);
+	void (*panel_type_detect) (struct mipi_panel_info *);
 	struct platform_device *next;
 	int (*clk_func) (int enable);
 };
