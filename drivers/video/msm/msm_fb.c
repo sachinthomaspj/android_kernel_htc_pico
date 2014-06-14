@@ -427,6 +427,7 @@ static int msm_fb_probe(struct platform_device *pdev)
 		MSM_FB_DEBUG("msm_fb_probe:  phy_Addr = 0x%x virt = 0x%x\n",
 			     (int)fbram_phys, (int)fbram);
 
+		//memset(fbram, 0x0, fbram_size);
 		iclient = msm_ion_client_create(-1, pdev->name);
 		if (IS_ERR_OR_NULL(iclient)) {
 			pr_err("msm_ion_client_create() return"
@@ -456,6 +457,10 @@ static int msm_fb_probe(struct platform_device *pdev)
 
 	vsync_cntrl.dev = mfd->fbi->dev;
 	mfd->panel_info.frame_count = 0;
+
+	mfd->width = msm_fb_pdata->width;
+	mfd->height = msm_fb_pdata->height;
+
 	mfd->bl_level = 0;
 	bl_scale = 1024;
 	bl_min_lvl = 255;
