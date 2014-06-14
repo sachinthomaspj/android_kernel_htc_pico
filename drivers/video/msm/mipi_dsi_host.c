@@ -1101,6 +1101,21 @@ void mipi_dsi_set_tear_off(struct msm_fb_data_type *mfd)
 	mipi_dsi_cmdlist_put(&cmdreq);
 }
 
+void mipi_dsi_cmd_mode_ctrl(int enable)
+{
+	uint32 data;
+
+	MIPI_OUTP(MIPI_DSI_BASE + 0x0080, 0x04);/* sw trigger */
+	data = MIPI_INP(MIPI_DSI_BASE + 0x0);
+	if (enable)
+		data |= 0x04;	/* cmd mode enable */
+	else
+		data &= ~0x04; /* cmd disable */
+
+	MIPI_OUTP(MIPI_DSI_BASE + 0x0, data);
+	wmb();
+}
+
 int mipi_dsi_cmd_reg_tx(uint32 data)
 {
 #ifdef DSI_HOST_DEBUG
