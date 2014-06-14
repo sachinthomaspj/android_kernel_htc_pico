@@ -516,7 +516,7 @@ void update_lane_config(struct msm_panel_info *pinfo)
 	pinfo->mipi.data_lane1 = FALSE;
 	pd->pll[10] |= 0x08;
 
-	pinfo->yres = 320;
+	pinfo->yres = 480;
 	pinfo->lcdc.h_back_porch = 15;
 	pinfo->lcdc.h_front_porch = 21;
 	pinfo->lcdc.h_pulse_width = 5;
