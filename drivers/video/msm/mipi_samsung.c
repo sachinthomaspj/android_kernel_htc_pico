@@ -21,6 +21,7 @@
  *                         External routine declaration
  * ----------------------------------------------------------------------------- */
 extern int mipi_status;
+#define DEFAULT_BRIGHTNESS 143
 extern int bl_level_prevset;
 extern struct dsi_cmd_desc *mipi_power_on_cmd;
 extern struct dsi_cmd_desc *mipi_power_off_cmd;
@@ -442,6 +443,7 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	struct msm_fb_panel_data *pdata = NULL;
 	struct mipi_panel_info *mipi;
+	struct dcs_cmd_req cmdreq;
 
 	mfd = platform_get_drvdata(pdev);
 	if (!mfd)
@@ -466,10 +468,13 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 		if (panel_type != PANEL_ID_NONE) {
 			PR_DISP_INFO("%s\n", ptype);
 
-			htc_mdp_sem_down(current, &mfd->dma->mutex);
-			mipi_dsi_cmds_tx(mfd, &samsung_tx_buf, mipi_power_on_cmd,
-				mipi_power_on_cmd_size);
-			htc_mdp_sem_up(&mfd->dma->mutex);
+			cmdreq.cmds = mipi_power_on_cmd;
+			cmdreq.cmds_cnt = mipi_power_on_cmd_size;
+			cmdreq.flags = CMD_REQ_COMMIT;
+			cmdreq.rlen = 0;
+			cmdreq.cb = NULL;
+			mipi_dsi_cmdlist_put(&cmdreq);
+
 		} else {
 			printk(KERN_ERR "panel_type=0x%x not support at power on\n", panel_type);
 			return -EINVAL;
@@ -483,6 +488,7 @@ static int mipi_samsung_lcd_on(struct platform_device *pdev)
 static int mipi_samsung_lcd_off(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
+	struct dcs_cmd_req cmdreq;
 
 	PR_DISP_INFO("%s\n", __func__);
 
@@ -495,8 +501,14 @@ static int mipi_samsung_lcd_off(struct platform_device *pdev)
 
 	if (panel_type != PANEL_ID_NONE) {
 		PR_DISP_INFO("%s\n", ptype);
-		mipi_dsi_cmds_tx(mfd, &samsung_tx_buf, mipi_power_off_cmd,
-			mipi_power_off_cmd_size);
+
+		cmdreq.cmds = mipi_power_off_cmd;
+		cmdreq.cmds_cnt = mipi_power_off_cmd_size;
+		cmdreq.flags = CMD_REQ_COMMIT;
+		cmdreq.rlen = 0;
+		cmdreq.cb = NULL;
+		mipi_dsi_cmdlist_put(&cmdreq);
+
 	} else
 		printk(KERN_ERR "panel_type=0x%x not support at power off\n",
 			panel_type);
@@ -507,6 +519,7 @@ static int mipi_samsung_lcd_off(struct platform_device *pdev)
 static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
 {
 	struct mipi_panel_info *mipi;
+	struct dcs_cmd_req cmdreq;
 
 	mipi  = &mfd->panel_info.mipi;
 	if (mipi_status == 0)
@@ -522,18 +535,28 @@ static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level)
 		led_pwm1[1] = 0;
 	}
 
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	if (mipi->mode == DSI_VIDEO_MODE) {
 		mipi_dsi_cmd_mode_ctrl(1);	/* enable cmd mode */
-		mipi_dsi_cmds_tx(mfd, &samsung_tx_buf, samsung_cmd_backlight_cmds,
-			ARRAY_SIZE(samsung_cmd_backlight_cmds));
+
+		cmdreq.cmds = samsung_cmd_backlight_cmds;
+		cmdreq.cmds_cnt = ARRAY_SIZE(samsung_cmd_backlight_cmds);
+		cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
+		cmdreq.rlen = 0;
+		cmdreq.cb = NULL;
+		mipi_dsi_cmdlist_put(&cmdreq);
+
 		mipi_dsi_cmd_mode_ctrl(0);	/* disable cmd mode */
+
 	} else {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
-		mipi_dsi_cmds_tx(mfd, &samsung_tx_buf, samsung_cmd_backlight_cmds,
-			ARRAY_SIZE(samsung_cmd_backlight_cmds));
+
+		cmdreq.cmds = samsung_cmd_backlight_cmds;
+		cmdreq.cmds_cnt = ARRAY_SIZE(samsung_cmd_backlight_cmds);
+		cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
+		cmdreq.rlen = 0;
+		cmdreq.cb = NULL;
+		mipi_dsi_cmdlist_put(&cmdreq);
 	}
-	htc_mdp_sem_up(&mfd->dma->mutex);
 
 	if (led_pwm1[1] != 0)
 		bl_level_prevset = level;
@@ -554,12 +577,17 @@ static void mipi_samsung_set_backlight(struct msm_fb_data_type *mfd)
 
 static void mipi_samsung_display_on(struct msm_fb_data_type *mfd)
 {
+	struct dcs_cmd_req cmdreq;
+
 	PR_DISP_DEBUG("%s+\n", __func__);
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
-	mipi_dsi_cmds_tx(mfd, &samsung_tx_buf, samsung_display_on_cmds,
-		ARRAY_SIZE(samsung_display_on_cmds));
-	htc_mdp_sem_up(&mfd->dma->mutex);
+
+	cmdreq.cmds = samsung_display_on_cmds;
+	cmdreq.cmds_cnt = ARRAY_SIZE(samsung_display_on_cmds);
+	cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
+	cmdreq.rlen = 0;
+	cmdreq.cb = NULL;
+	mipi_dsi_cmdlist_put(&cmdreq);
 }
 
 static void mipi_samsung_bkl_switch(struct msm_fb_data_type *mfd, bool on)
@@ -586,18 +614,29 @@ static void mipi_samsung_bkl_switch(struct msm_fb_data_type *mfd, bool on)
 
 static void mipi_samsung_bkl_ctrl(struct msm_fb_data_type *mfd, bool on)
 {
+	struct dcs_cmd_req cmdreq;
+
 	PR_DISP_INFO("mipi_samsung_bkl_ctrl > on = %x\n", on);
-	htc_mdp_sem_down(current, &mfd->dma->mutex);
 	if (on) {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
-		mipi_dsi_cmds_tx(mfd, &samsung_tx_buf, samsung_bkl_enable_cmds,
-			ARRAY_SIZE(samsung_bkl_enable_cmds));
+		
+		cmdreq.cmds = samsung_bkl_enable_cmds;
+		cmdreq.cmds_cnt = ARRAY_SIZE(samsung_bkl_enable_cmds);
+		cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
+		cmdreq.rlen = 0;
+		cmdreq.cb = NULL;
+		mipi_dsi_cmdlist_put(&cmdreq);
+
 	} else {
 		mipi_dsi_op_mode_config(DSI_CMD_MODE);
-		mipi_dsi_cmds_tx(mfd, &samsung_tx_buf, samsung_bkl_disable_cmds,
-			ARRAY_SIZE(samsung_bkl_disable_cmds));
+
+		cmdreq.cmds = samsung_bkl_disable_cmds;
+		cmdreq.cmds_cnt = ARRAY_SIZE(samsung_bkl_disable_cmds);
+		cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
+		cmdreq.rlen = 0;
+		cmdreq.cb = NULL;
+		mipi_dsi_cmdlist_put(&cmdreq);
 	}
-	htc_mdp_sem_up(&mfd->dma->mutex);
 }
 
 static int mipi_samsung_lcd_probe(struct platform_device *pdev)
