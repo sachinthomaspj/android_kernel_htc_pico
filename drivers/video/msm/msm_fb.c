@@ -371,6 +371,7 @@ static int msm_fb_probe(struct platform_device *pdev)
 		MSM_FB_DEBUG("msm_fb_probe:  phy_Addr = 0x%x virt = 0x%x\n",
 			     (int)fbram_phys, (int)fbram);
 
+		//memset(fbram, 0x0, fbram_size);
 		iclient = msm_ion_client_create(-1, pdev->name);
 		if (IS_ERR_OR_NULL(iclient)) {
 			pr_err("msm_ion_client_create() return"
@@ -400,6 +401,10 @@ static int msm_fb_probe(struct platform_device *pdev)
 
 	vsync_cntrl.dev = mfd->fbi->dev;
 	mfd->panel_info.frame_count = 0;
+
+	mfd->width = msm_fb_pdata->width;
+	mfd->height = msm_fb_pdata->height;
+
 	mfd->bl_level = 0;
 	bl_scale = 1024;
 	bl_min_lvl = 255;
@@ -1317,6 +1322,28 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	var->yres_virtual = panel_info->yres * mfd->fb_page +
 		((PAGE_SIZE - remainder)/fix->line_length) * mfd->fb_page;
 	var->bits_per_pixel = bpp * 8;	/* FrameBuffer color depth */
+
+	if (mfd->dest == DISPLAY_LCD) {
+		if (panel_info->type == MDDI_PANEL && panel_info->mddi.is_type1)
+			var->reserved[3] = panel_info->lcd.refx100 / (100 * 2);
+		else
+			var->reserved[3] = panel_info->lcd.refx100 / 100;
+	} else {
+		if (panel_info->type == MIPI_VIDEO_PANEL) {
+			var->reserved[3] = panel_info->mipi.frame_rate;
+		} else {
+			var->reserved[3] = panel_info->clk_rate /
+				((panel_info->lcdc.h_back_porch +
+				  panel_info->lcdc.h_front_porch +
+				  panel_info->lcdc.h_pulse_width +
+				  panel_info->xres) *
+				 (panel_info->lcdc.v_back_porch +
+				  panel_info->lcdc.v_front_porch +
+				  panel_info->lcdc.v_pulse_width +
+				  panel_info->yres));
+		}
+	}
+	pr_debug("reserved[3] %u\n", var->reserved[3]);
 
 		/*
 		 * id field for fb app
