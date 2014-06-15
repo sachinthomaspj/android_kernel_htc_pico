@@ -64,6 +64,8 @@ enum {
 
 struct dcs_cmd_list	cmdlist;
 
+#define DSI_HOST_DEBUG
+
 #ifdef CONFIG_FB_MSM_MDP40
 void mipi_dsi_mdp_stat_inc(int which)
 {
