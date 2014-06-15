@@ -409,20 +409,6 @@ static void mipi_novatek_set_backlight(struct msm_fb_data_type *mfd)
 
 }
 
-static void mipi_novatek_display_on(struct msm_fb_data_type *mfd)
-{
-
-	PR_DISP_DEBUG("%s+\n", __func__);
-	mipi_dsi_op_mode_config(DSI_CMD_MODE);
-
-	cmdreq.cmds = novatek_display_on_cmds;
-	cmdreq.cmds_cnt = ARRAY_SIZE(novatek_display_on_cmds);
-	cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
-	cmdreq.rlen = 0;
-	cmdreq.cb = NULL;
-	mipi_dsi_cmdlist_put(&cmdreq);
-}
-
 static void mipi_novatek_bkl_switch(struct msm_fb_data_type *mfd, bool on)
 {
 	unsigned int val = 0;
@@ -603,7 +589,6 @@ static struct msm_fb_panel_data novatek_panel_data = {
 	.on		= mipi_novatek_lcd_on,
 	.off		= mipi_novatek_lcd_off,
 	.set_backlight  = mipi_novatek_set_backlight,
-	.display_on  = mipi_novatek_display_on,
 	.bklswitch	= mipi_novatek_bkl_switch,
 	.bklctrl	= mipi_novatek_bkl_ctrl,
 	.panel_type_detect = mipi_novatek_panel_type_detect,
