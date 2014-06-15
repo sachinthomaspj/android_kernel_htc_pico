@@ -656,6 +656,11 @@ static struct platform_driver this_driver = {
 	},
 };
 
+static int mipi_samsung_lcd_late_init(struct platform_device *pdev)
+{
+	return 0;
+}
+
 static struct msm_fb_panel_data samsung_panel_data = {
 	.on		= mipi_samsung_lcd_on,
 	.off		= mipi_samsung_lcd_off,
@@ -664,6 +669,7 @@ static struct msm_fb_panel_data samsung_panel_data = {
 	.bklswitch	= mipi_samsung_bkl_switch,
 	.bklctrl	= mipi_samsung_bkl_ctrl,
 	.panel_type_detect = mipi_samsung_panel_type_detect,
+	.late_init	= mipi_samsung_lcd_late_init,
 };
 
 static int ch_used[3];

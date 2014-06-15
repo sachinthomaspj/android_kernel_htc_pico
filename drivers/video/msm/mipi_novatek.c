@@ -622,6 +622,11 @@ static struct platform_driver this_driver = {
 	},
 };
 
+static int mipi_novatek_lcd_late_init(struct platform_device *pdev)
+{
+	return 0;
+}
+
 static struct msm_fb_panel_data novatek_panel_data = {
 	.on		= mipi_novatek_lcd_on,
 	.off		= mipi_novatek_lcd_off,
@@ -630,6 +635,7 @@ static struct msm_fb_panel_data novatek_panel_data = {
 	.bklswitch	= mipi_novatek_bkl_switch,
 	.bklctrl	= mipi_novatek_bkl_ctrl,
 	.panel_type_detect = mipi_novatek_panel_type_detect,
+	.late_init	= mipi_novatek_lcd_late_init,
 };
 
 static ssize_t mipi_dsi_3d_barrier_read(struct device *dev,
