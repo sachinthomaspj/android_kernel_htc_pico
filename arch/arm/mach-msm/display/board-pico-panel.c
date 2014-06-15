@@ -100,9 +100,6 @@ static int mipi_panel_power(int on)
 {
 	int flag_on = !!on;
 
-	if (mipi_power_save_on == flag_on)
-		return 0;
-
 	mipi_power_save_on = flag_on;
 
 	pico_panel_power(on);	
