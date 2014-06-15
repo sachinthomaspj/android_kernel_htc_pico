@@ -529,13 +529,11 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 
 	mipi  = &mfd->panel_info.mipi;
 
-	if (mfd->first_init_lcd != 0) {
+	if (strlen(ptype) <= 13) {
 		printk("Display On - 1st time\n");
 
 		if (pdata && pdata->panel_type_detect)
 			pdata->panel_type_detect(mipi);
-
-		mfd->first_init_lcd = 0;
 
 	} else {
 		printk("Display On \n");
