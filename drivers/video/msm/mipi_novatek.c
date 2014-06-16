@@ -462,27 +462,6 @@ static void mipi_dsi_enable_3d_barrier(int mode)
 					__func__);
 }
 
-void mipi_novatek_panel_type_detect(struct mipi_panel_info *mipi)
-{
-if (panel_type == PANEL_ID_PIO_AUO) {
-		PR_DISP_INFO("%s: panel_type=PANEL_ID_PIO_AUO\n", __func__);
-		strcat(ptype, "PANEL_ID_PIO_AUO");
-		if (mipi->mode == DSI_VIDEO_MODE) {
-			mipi_power_on_cmd = pico_auo_video_on_cmds;
-			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_video_on_cmds);
-		} else {
-			mipi_power_on_cmd = pico_auo_cmd_on_cmds;
-			mipi_power_on_cmd_size = ARRAY_SIZE(pico_auo_cmd_on_cmds);
-		}
-		mipi_power_off_cmd = novatek_display_off_cmds;
-		mipi_power_off_cmd_size = ARRAY_SIZE(novatek_display_off_cmds);
-	} else {
-		printk(KERN_ERR "%s: panel_type=0x%x not support\n", __func__, panel_type);
-		strcat(ptype, "PANEL_ID_NONE");
-	}
-	return;
-}
-
 static int mipi_novatek_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
@@ -500,8 +479,8 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 
 	mipi  = &mfd->panel_info.mipi;
 
-		cmdreq.cmds = mipi_power_on_cmd;
-		cmdreq.cmds_cnt = mipi_power_on_cmd_size;
+		cmdreq.cmds = pico_auo_cmd_on_cmds;
+		cmdreq.cmds_cnt = ARRAY_SIZE(pico_auo_cmd_on_cmds);
 		cmdreq.flags = CMD_REQ_COMMIT;
 		cmdreq.rlen = 0;
 		cmdreq.cb = NULL;
@@ -526,8 +505,8 @@ static int mipi_novatek_lcd_off(struct platform_device *pdev)
 	if (mfd->key != MFD_KEY)
 		return -EINVAL;
 
-	cmdreq.cmds = mipi_power_off_cmd;
-	cmdreq.cmds_cnt = mipi_power_off_cmd_size;
+	cmdreq.cmds = novatek_display_off_cmds;
+	cmdreq.cmds_cnt = ARRAY_SIZE(novatek_display_off_cmds);
 	cmdreq.flags = CMD_REQ_COMMIT;
 	cmdreq.rlen = 0;
 	cmdreq.cb = NULL;
@@ -641,7 +620,6 @@ static struct msm_fb_panel_data novatek_panel_data = {
 	.off		= mipi_novatek_lcd_off,
 	.late_init	= mipi_novatek_lcd_late_init,
 	.set_backlight = mipi_novatek_set_backlight,
-	.panel_type_detect = mipi_novatek_panel_type_detect,
 };
 
 static ssize_t mipi_dsi_3d_barrier_read(struct device *dev,
