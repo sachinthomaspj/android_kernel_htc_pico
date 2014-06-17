@@ -364,6 +364,10 @@ static struct dsi_cmd_desc pico_auo_video_on_cmds[] = {
 		sizeof(peripheral_on), peripheral_on}
 };
 
+static struct dsi_cmd_desc novatek_display_on_cmds[] = {
+	{DTYPE_DCS_WRITE, 1, 0, 0, 0,
+		sizeof(display_on), display_on},
+};
 
 static struct dsi_cmd_desc novatek_display_off_cmds[] = {
 	{DTYPE_DCS_WRITE, 1, 0, 0, 0,
@@ -462,6 +466,20 @@ static void mipi_dsi_enable_3d_barrier(int mode)
 					__func__);
 }
 
+static void mipi_novatek_display_on(struct msm_fb_data_type *mfd)
+{
+
+	PR_DISP_DEBUG("%s+\n", __func__);
+	mipi_dsi_op_mode_config(DSI_CMD_MODE);
+
+	cmdreq.cmds = novatek_display_on_cmds;
+	cmdreq.cmds_cnt = ARRAY_SIZE(novatek_display_on_cmds);
+	cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
+	cmdreq.rlen = 0;
+	cmdreq.cb = NULL;
+	mipi_dsi_cmdlist_put(&cmdreq);
+}
+
 static int mipi_novatek_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
@@ -489,6 +507,7 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 		/* clean up ack_err_status */
 		mipi_dsi_cmd_bta_sw_trigger();
 		mipi_novatek_manufacture_id(mfd);
+		mipi_novatek_display_on(mfd);
 
 	return 0;
 }
