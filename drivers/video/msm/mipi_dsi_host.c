@@ -1152,7 +1152,7 @@ static int mipi_dsi_cmd_dma_rx(struct dsi_buf *rp, int rlen);
  * mipi_dsi_cmds_tx:
  * thread context only
  */
-static int mipi_dsi_cmds_tx(struct dsi_buf *tp,
+int mipi_dsi_cmds_tx(struct dsi_buf *tp,
 			struct dsi_cmd_desc *cmds, int cnt)
 {
 	struct dsi_cmd_desc *cm;

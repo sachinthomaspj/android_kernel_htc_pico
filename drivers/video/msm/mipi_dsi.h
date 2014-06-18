@@ -294,6 +294,7 @@ void mipi_dsi_lane_cfg(void);
 void mipi_dsi_bist_ctrl(void);
 int mipi_dsi_buf_alloc(struct dsi_buf *, int size);
 int mipi_dsi_cmd_dma_add(struct dsi_buf *dp, struct dsi_cmd_desc *cm);
+int mipi_dsi_cmds_tx(struct dsi_buf *dp, struct dsi_cmd_desc *cmds, int cnt);
 int mipi_dsi_cmd_reg_tx(uint32 data);
 void mipi_dsi_host_init(struct mipi_panel_info *pinfo);
 void mipi_dsi_op_mode_config(int mode);

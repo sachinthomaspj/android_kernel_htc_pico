@@ -468,16 +468,16 @@ static void mipi_dsi_enable_3d_barrier(int mode)
 
 static void mipi_novatek_display_on(struct msm_fb_data_type *mfd)
 {
+	dump_stack();
 
 	PR_DISP_DEBUG("%s+\n", __func__);
 	mipi_dsi_op_mode_config(DSI_CMD_MODE);
 
-	cmdreq.cmds = novatek_display_on_cmds;
-	cmdreq.cmds_cnt = ARRAY_SIZE(novatek_display_on_cmds);
-	cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
-	cmdreq.rlen = 0;
-	cmdreq.cb = NULL;
-	mipi_dsi_cmdlist_put(&cmdreq);
+	mutex_lock(&mfd->dma->ov_mutex);
+
+	mipi_dsi_cmds_tx(&novatek_tx_buf, novatek_display_on_cmds,ARRAY_SIZE(novatek_display_on_cmds));
+
+	mutex_unlock(&mfd->dma->ov_mutex);
 }
 
 static int mipi_novatek_lcd_on(struct platform_device *pdev)
@@ -507,7 +507,6 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 		/* clean up ack_err_status */
 		mipi_dsi_cmd_bta_sw_trigger();
 		mipi_novatek_manufacture_id(mfd);
-		mipi_novatek_display_on(mfd);
 
 	return 0;
 }
