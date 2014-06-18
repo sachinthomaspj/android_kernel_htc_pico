@@ -15,11 +15,22 @@
 #include <linux/spi/spi.h>
 #endif
 #include <linux/leds.h>
+#include <mach/panel_id.h>
+#include <mach/debug_display.h>
+#include <mach/htc_battery_common.h>
 #include "msm_fb.h"
 #include "mipi_dsi.h"
 #include "mipi_novatek.h"
 #include "mdp4.h"
 
+extern int mipi_status;
+#define DEFAULT_BRIGHTNESS 143
+extern int bl_level_prevset;
+extern struct dsi_cmd_desc *mipi_power_on_cmd;
+extern struct dsi_cmd_desc *mipi_power_off_cmd;
+extern int mipi_power_on_cmd_size;
+extern int mipi_power_off_cmd_size;
+extern char ptype[60];
 
 static struct mipi_dsi_panel_platform_data *mipi_novatek_pdata;
 
@@ -143,77 +154,9 @@ static void novatek_fpga_read(uint8 addr)
 #endif
 
 
-/* novatek blue panel */
+static unsigned char bkl_enable_cmds[] = {0x53, 0x24};/* DTYPE_DCS_WRITE1 */
+static unsigned char bkl_disable_cmds[] = {0x53, 0x00};/* DTYPE_DCS_WRITE1 */
 
-#ifdef NOVETAK_COMMANDS_UNUSED
-static char display_config_cmd_mode1[] = {
-	/* TYPE_DCS_LWRITE */
-	0x2A, 0x00, 0x00, 0x01,
-	0x3F, 0xFF, 0xFF, 0xFF
-};
-
-static char display_config_cmd_mode2[] = {
-	/* DTYPE_DCS_LWRITE */
-	0x2B, 0x00, 0x00, 0x01,
-	0xDF, 0xFF, 0xFF, 0xFF
-};
-
-static char display_config_cmd_mode3_666[] = {
-	/* DTYPE_DCS_WRITE1 */
-	0x3A, 0x66, 0x15, 0x80 /* 666 Packed (18-bits) */
-};
-
-static char display_config_cmd_mode3_565[] = {
-	/* DTYPE_DCS_WRITE1 */
-	0x3A, 0x55, 0x15, 0x80 /* 565 mode */
-};
-
-static char display_config_321[] = {
-	/* DTYPE_DCS_WRITE1 */
-	0x66, 0x2e, 0x15, 0x00 /* Reg 0x66 : 2E */
-};
-
-static char display_config_323[] = {
-	/* DTYPE_DCS_WRITE */
-	0x13, 0x00, 0x05, 0x00 /* Reg 0x13 < Set for Normal Mode> */
-};
-
-static char display_config_2lan[] = {
-	/* DTYPE_DCS_WRITE */
-	0x61, 0x01, 0x02, 0xff /* Reg 0x61 : 01,02 < Set for 2 Data Lane > */
-};
-
-static char display_config_exit_sleep[] = {
-	/* DTYPE_DCS_WRITE */
-	0x11, 0x00, 0x05, 0x80 /* Reg 0x11 < exit sleep mode> */
-};
-
-static char display_config_TE_ON[] = {
-	/* DTYPE_DCS_WRITE1 */
-	0x35, 0x00, 0x15, 0x80
-};
-
-static char display_config_39H[] = {
-	/* DTYPE_DCS_WRITE */
-	0x39, 0x00, 0x05, 0x80
-};
-
-static char display_config_set_tear_scanline[] = {
-	/* DTYPE_DCS_LWRITE */
-	0x44, 0x00, 0x00, 0xff
-};
-
-static char display_config_set_twolane[] = {
-	/* DTYPE_DCS_WRITE1 */
-	0xae, 0x03, 0x15, 0x80
-};
-
-static char display_config_set_threelane[] = {
-	/* DTYPE_DCS_WRITE1 */
-	0xae, 0x05, 0x15, 0x80
-};
-
-#else
 
 static char sw_reset[2] = {0x01, 0x00}; /* DTYPE_DCS_WRITE */
 static char enter_sleep[2] = {0x10, 0x00}; /* DTYPE_DCS_WRITE */
@@ -222,76 +165,212 @@ static char display_off[2] = {0x28, 0x00}; /* DTYPE_DCS_WRITE */
 static char display_on[2] = {0x29, 0x00}; /* DTYPE_DCS_WRITE */
 
 
+/* Pico panel initial setting */
+static char pio_f0[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xF0, 0xAA, 0x55, 0x52
+};
+static char pio_f6[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xF6, 0x05, 0x70, 0x65
+};
+static char pio_b4[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xB4, 0x03, 0x03, 0x03
+};
+static char pio_bf[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xBF, 0x03, 0x08, 0x00
+};
+static char pio_b8[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xB8, 0xEF, 0x02, 0xFF
+};
+static char pio_b0[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xB0, 0x00, 0x7A, 0xFF
+};
+static char pio_b1[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xB1, 0xB7, 0x01, 0x28
+};
+static char pio_b2[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xB2, 0xB7, 0x01, 0x28
+};
+static char pio_b3[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xB3, 0xB7, 0x01, 0x28
+};
+static char pio_c0[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xC0, 0x78, 0x78, 0x00,
+	0x00, 0x00, 0x00, 0x00
+};
+static char pio_c1[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xC1, 0x46, 0x46, 0x46,
+	0xF2, 0x02, 0x00, 0xFF
+};
+static char pio_c2[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xC2, 0x01, 0x04, 0x01
+};
+static char pio_26[2] = {0x26, 0x10}; /* DTYPE_DCS_WRITE1 */
+static char pio_e0[20] = {
+	/* DTYPE_DCS_LWRITE */
+	0xE0, 0x45, 0x48, 0x51, 0x5A, 0x17, 0x29, 0x5A, 0x3D, 0x1E,
+	0x28, 0x7E, 0x19, 0x3E, 0x4C, 0x66, 0x99, 0x30, 0x71, 0xFF
+};
+static char pio_e1[20] = {
+	/* DTYPE_DCS_LWRITE */
+	0xE1, 0x45, 0x48, 0x51, 0x5A, 0x17, 0x29, 0x5A, 0x3D, 0x1E,
+	0x28, 0x7E, 0x19, 0x3E, 0x4C, 0x66, 0x99, 0x30, 0x71, 0xFF
+};
+static char pio_e2[20] = {
+	/* DTYPE_DCS_LWRITE */
+	0xE2, 0x21, 0x27, 0x39, 0x49, 0x20, 0x34, 0x61, 0x42, 0x1D,
+	0x27, 0x82, 0x1C, 0x46, 0x55, 0x64, 0x89, 0x2A, 0x71, 0xFF
+};
+static char pio_e3[20] = {
+	/* DTYPE_DCS_LWRITE */
+	0xE3, 0x21, 0x27, 0x39, 0x49, 0x20, 0x34, 0x61, 0x42, 0x1D,
+	0x27, 0x82, 0x1C, 0x46, 0x55, 0x64, 0x89, 0x2A, 0x71, 0xFF
+};
+static char pio_e4[20] = {
+	/* DTYPE_DCS_LWRITE */
+	0xE4, 0x40, 0x52, 0x6A, 0x77, 0x20, 0x33, 0x60, 0x50, 0x1C,
+	0x24, 0x86, 0x0D, 0x29, 0x35, 0xF4, 0xF0, 0x70, 0x7F, 0xFF
+};
+static char pio_e5[20] = {
+	/* DTYPE_DCS_LWRITE */
+	0xE5, 0x40, 0x52, 0x6A, 0x77, 0x20, 0x33, 0x60, 0x50, 0x1C,
+	0x24, 0x86, 0x0D, 0x29, 0x35, 0xF4, 0xF0, 0x70, 0x7F, 0xFF
+};
+static char pio_pwm2[2] = {0x53, 0x24}; /* DTYPE_DCS_WRITE1 */
+static char pio_cb[] = {
+	/* DTYPE_DCS_LWRITE */
+	0xCB, 0x80, 0x04, 0xFF
+};
+static char pio_fe[2] = {0xFE, 0x08};/* DTYPE_DCS_WRITE1 */
+static char pio_enable_te[2] = {0x35, 0x00};/* DTYPE_DCS_WRITE */
+static char peripheral_on[2] = {0x00, 0x00}; /* DTYPE_DCS_READ */
 
-static char rgb_888[2] = {0x3A, 0x77}; /* DTYPE_DCS_WRITE1 */
-
-#if defined(NOVATEK_TWO_LANE)
-static char set_num_of_lanes[2] = {0xae, 0x03}; /* DTYPE_DCS_WRITE1 */
-#else  /* 1 lane */
-static char set_num_of_lanes[2] = {0xae, 0x01}; /* DTYPE_DCS_WRITE1 */
-#endif
-/* commands by Novatke */
-static char novatek_f4[2] = {0xf4, 0x55}; /* DTYPE_DCS_WRITE1 */
-static char novatek_8c[16] = { /* DTYPE_DCS_LWRITE */
-	0x8C, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x08, 0x08, 0x00, 0x30, 0xC0, 0xB7, 0x37};
-static char novatek_ff[2] = {0xff, 0x55 }; /* DTYPE_DCS_WRITE1 */
-
-static char set_width[5] = { /* DTYPE_DCS_LWRITE */
-	0x2A, 0x00, 0x00, 0x02, 0x1B}; /* 540 - 1 */
-static char set_height[5] = { /* DTYPE_DCS_LWRITE */
-	0x2B, 0x00, 0x00, 0x03, 0xBF}; /* 960 - 1 */
-#endif
-
-static char led_pwm2[2] = {0x53, 0x24}; /* DTYPE_DCS_WRITE1 */
-static char led_pwm3[2] = {0x55, 0x00}; /* DTYPE_DCS_WRITE1 */
-
-static struct dsi_cmd_desc novatek_video_on_cmds[] = {
-	{DTYPE_DCS_WRITE, 1, 0, 0, 50,
+static struct dsi_cmd_desc pico_auo_cmd_on_cmds[] = {
+	{DTYPE_DCS_WRITE, 1, 0, 0, 10,
 		sizeof(sw_reset), sw_reset},
-	{DTYPE_DCS_WRITE, 1, 0, 0, 10,
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_f0), pio_f0},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b4), pio_b4},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_bf), pio_bf},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b8), pio_b8},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b1), pio_b1},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b2), pio_b2},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b3), pio_b3},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_c0), pio_c0},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_c1), pio_c1},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_c2), pio_c2},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 0,
+		sizeof(pio_26), pio_26},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e0), pio_e0},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e1), pio_e1},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e2), pio_e2},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e3), pio_e3},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e4), pio_e4},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e5), pio_e5},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 0,
+		sizeof(pio_pwm2), pio_pwm2},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_cb), pio_cb},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 0,
+		sizeof(pio_enable_te), pio_enable_te},
+	{DTYPE_DCS_WRITE, 1, 0, 0, 120,
 		sizeof(exit_sleep), exit_sleep},
-	{DTYPE_DCS_WRITE, 1, 0, 0, 10,
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 20,
+		sizeof(pio_fe), pio_fe},
+	{DTYPE_DCS_WRITE, 1, 0, 0, 0,
 		sizeof(display_on), display_on},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 10,
-		sizeof(set_num_of_lanes), set_num_of_lanes},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 10,
-		sizeof(rgb_888), rgb_888},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 10,
-		sizeof(led_pwm2), led_pwm2},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 10,
-		sizeof(led_pwm3), led_pwm3},
 };
 
-static struct dsi_cmd_desc novatek_cmd_on_cmds[] = {
-	{DTYPE_DCS_WRITE, 1, 0, 0, 50,
-		sizeof(sw_reset), sw_reset},
+static struct dsi_cmd_desc pico_auo_video_on_cmds[] = {
 	{DTYPE_DCS_WRITE, 1, 0, 0, 10,
+		sizeof(sw_reset), sw_reset},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_f0), pio_f0},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_f6), pio_f6},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b0), pio_b0},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b4), pio_b4},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 0,
+		sizeof(pio_bf), pio_bf},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 0,
+		sizeof(pio_b8), pio_b8},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b1), pio_b1},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b2), pio_b2},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_b3), pio_b3},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_c0), pio_c0},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_c1), pio_c1},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_c2), pio_c2},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 0,
+		sizeof(pio_26), pio_26},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e0), pio_e0},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e1), pio_e1},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e2), pio_e2},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e3), pio_e3},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e4), pio_e4},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_e5), pio_e5},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 0,
+		sizeof(pio_pwm2), pio_pwm2},
+	{DTYPE_DCS_LWRITE, 1, 0, 0, 0,
+		sizeof(pio_cb), pio_cb},
+	{DTYPE_DCS_WRITE, 1, 0, 0, 0,
+		sizeof(pio_enable_te), pio_enable_te},
+	{DTYPE_DCS_WRITE, 1, 0, 0, 120,
 		sizeof(exit_sleep), exit_sleep},
+	{DTYPE_DCS_WRITE1, 1, 0, 0, 20,
+		sizeof(pio_fe), pio_fe},
 	{DTYPE_DCS_WRITE, 1, 0, 0, 10,
 		sizeof(display_on), display_on},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 50,
-		sizeof(novatek_f4), novatek_f4},
-	{DTYPE_DCS_LWRITE, 1, 0, 0, 50,
-		sizeof(novatek_8c), novatek_8c},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 50,
-		sizeof(novatek_ff), novatek_ff},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 10,
-		sizeof(set_num_of_lanes), set_num_of_lanes},
-	{DTYPE_DCS_LWRITE, 1, 0, 0, 50,
-		sizeof(set_width), set_width},
-	{DTYPE_DCS_LWRITE, 1, 0, 0, 50,
-		sizeof(set_height), set_height},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 10,
-		sizeof(rgb_888), rgb_888},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 1,
-		sizeof(led_pwm2), led_pwm2},
-	{DTYPE_DCS_WRITE1, 1, 0, 0, 1,
-		sizeof(led_pwm3), led_pwm3},
+	{DTYPE_PERIPHERAL_ON, 1, 0, 1, 0,
+		sizeof(peripheral_on), peripheral_on}
+};
+
+static struct dsi_cmd_desc novatek_display_on_cmds[] = {
+	{DTYPE_DCS_WRITE, 1, 0, 0, 0,
+		sizeof(display_on), display_on},
 };
 
 static struct dsi_cmd_desc novatek_display_off_cmds[] = {
-	{DTYPE_DCS_WRITE, 1, 0, 0, 10,
+	{DTYPE_DCS_WRITE, 1, 0, 0, 0,
 		sizeof(display_off), display_off},
 	{DTYPE_DCS_WRITE, 1, 0, 0, 120,
 		sizeof(enter_sleep), enter_sleep}
@@ -314,6 +393,7 @@ static uint32 mipi_novatek_manufacture_id(struct msm_fb_data_type *mfd)
 {
 	struct dcs_cmd_req cmdreq;
 
+	memset(&cmdreq, 0, sizeof(cmdreq));
 	cmdreq.cmds = &novatek_manufacture_id_cmd;
 	cmdreq.cmds_cnt = 1;
 	cmdreq.flags = CMD_REQ_RX | CMD_REQ_COMMIT;
@@ -385,6 +465,20 @@ static void mipi_dsi_enable_3d_barrier(int mode)
 					__func__);
 }
 
+static void mipi_novatek_display_on(struct msm_fb_data_type *mfd)
+{
+	dump_stack();
+
+	PR_DISP_DEBUG("%s+\n", __func__);
+	mipi_dsi_op_mode_config(DSI_CMD_MODE);
+
+	mutex_lock(&mfd->dma->ov_mutex);
+
+	mipi_dsi_cmds_tx(&novatek_tx_buf, novatek_display_on_cmds,ARRAY_SIZE(novatek_display_on_cmds));
+
+	mutex_unlock(&mfd->dma->ov_mutex);
+}
+
 static int mipi_novatek_lcd_on(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd;
@@ -399,21 +493,11 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 		return -EINVAL;
 
 	pinfo = &mfd->panel_info;
-	if (pinfo->is_3d_panel)
-		support_3d = TRUE;
 
 	mipi  = &mfd->panel_info.mipi;
 
-	if (mipi->mode == DSI_VIDEO_MODE) {
-		cmdreq.cmds = novatek_video_on_cmds;
-		cmdreq.cmds_cnt = ARRAY_SIZE(novatek_video_on_cmds);
-		cmdreq.flags = CMD_REQ_COMMIT;
-		cmdreq.rlen = 0;
-		cmdreq.cb = NULL;
-		mipi_dsi_cmdlist_put(&cmdreq);
-	} else {
-		cmdreq.cmds = novatek_cmd_on_cmds;
-		cmdreq.cmds_cnt = ARRAY_SIZE(novatek_cmd_on_cmds);
+		cmdreq.cmds = pico_auo_cmd_on_cmds;
+		cmdreq.cmds_cnt = ARRAY_SIZE(pico_auo_cmd_on_cmds);
 		cmdreq.flags = CMD_REQ_COMMIT;
 		cmdreq.rlen = 0;
 		cmdreq.cb = NULL;
@@ -422,7 +506,7 @@ static int mipi_novatek_lcd_on(struct platform_device *pdev)
 		/* clean up ack_err_status */
 		mipi_dsi_cmd_bta_sw_trigger();
 		mipi_novatek_manufacture_id(mfd);
-	}
+
 	return 0;
 }
 
@@ -508,11 +592,6 @@ static int __devinit mipi_novatek_lcd_probe(struct platform_device *pdev)
 		}
 
 		if (mipi_novatek_pdata
-			&& mipi_novatek_pdata->dlane_swap) {
-			dlane_swap = (mipi_novatek_pdata->dlane_swap);
-		}
-
-		if (mipi_novatek_pdata
 			 && mipi_novatek_pdata->fpga_3d_config_addr)
 			mipi_novatek_3d_init(mipi_novatek_pdata
 	->fpga_3d_config_addr, mipi_novatek_pdata->fpga_ctrl_mode);
@@ -528,6 +607,7 @@ static int __devinit mipi_novatek_lcd_probe(struct platform_device *pdev)
 		return 0;
 	}
 
+
 	current_pdev = msm_fb_add_device(pdev);
 
 	if (current_pdev) {
@@ -541,9 +621,6 @@ static int __devinit mipi_novatek_lcd_probe(struct platform_device *pdev)
 
 		if (phy_settings != NULL)
 			mipi->dsi_phy_db = phy_settings;
-
-		if (dlane_swap)
-			mipi->dlane_swap = dlane_swap;
 	}
 	return 0;
 }
@@ -685,3 +762,4 @@ static int mipi_novatek_lcd_init(void)
 
 	return platform_driver_register(&this_driver);
 }
+
