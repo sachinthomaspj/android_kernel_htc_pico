@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -76,13 +76,13 @@ struct msm_fb_data_type {
 
 	panel_id_type panel;
 	struct msm_panel_info panel_info;
-	int first_init_lcd;
 
 	DISP_TARGET dest;
 	struct fb_info *fbi;
 
-	struct delayed_work backlight_worker;
+	struct device *dev;
 	boolean op_enable;
+	struct delayed_work backlight_worker;
 	uint32 fb_imgType;
 	boolean sw_currently_refreshing;
 	boolean sw_refreshing_enable;
@@ -158,9 +158,6 @@ struct msm_fb_data_type {
 	__u32 var_pixclock;
 	__u32 var_frame_rate;
 
-	uint32_t width;
-	uint32_t height;
-
 #ifdef MSM_FB_ENABLE_DBGFS
 	struct dentry *sub_dir;
 #endif
@@ -198,32 +195,33 @@ struct msm_fb_data_type {
 	u32 mdp_rev;
 	u32 writeback_state;
 	bool writeback_active_cnt;
+	bool writeback_initialized;
 	int cont_splash_done;
-	void *copy_splash_buf;
-	unsigned char *copy_splash_phys;
 	void *cpu_pm_hdl;
-	u32 avtimer_phy;
-	int vsync_sysfs_created;
 	u32 acq_fen_cnt;
 	struct sync_fence *acq_fen[MDP_MAX_FENCE_FD];
-	int cur_rel_fen_fd;
-	struct sync_pt *cur_rel_sync_pt;
-	struct sync_fence *cur_rel_fence;
-	struct sync_fence *last_rel_fence;
 	struct sw_sync_timeline *timeline;
 	int timeline_value;
-	u32 last_acq_fen_cnt;
-	struct sync_fence *last_acq_fen[MDP_MAX_FENCE_FD];
 	struct mutex sync_mutex;
+	struct mutex queue_mutex;
 	struct completion commit_comp;
 	u32 is_committing;
-	struct work_struct commit_work;
+	atomic_t commit_cnt;
+	struct task_struct *commit_thread;
+	wait_queue_head_t commit_queue;
+	int wake_commit_thread;
 	void *msm_fb_backup;
+	boolean panel_driver_on;
+	int vsync_sysfs_created;
+	void *copy_splash_buf;
+	unsigned char *copy_splash_phys;
+	uint32 sec_mapped;
+	uint32 sec_active;
+	uint32 max_map_size;
 };
 struct msm_fb_backup_type {
 	struct fb_info info;
-	struct fb_var_screeninfo var;
-	struct msm_fb_data_type mfd;
+	struct mdp_display_commit disp_commit;
 };
 
 struct dentry *msm_fb_get_debugfs_root(void);
@@ -243,8 +241,11 @@ int msm_fb_writeback_stop(struct fb_info *info);
 int msm_fb_writeback_terminate(struct fb_info *info);
 int msm_fb_detect_client(const char *name);
 int calc_fb_offset(struct msm_fb_data_type *mfd, struct fb_info *fbi, int bpp);
-int msm_fb_wait_for_fence(struct msm_fb_data_type *mfd);
+void msm_fb_wait_for_fence(struct msm_fb_data_type *mfd);
 int msm_fb_signal_timeline(struct msm_fb_data_type *mfd);
+void msm_fb_release_timeline(struct msm_fb_data_type *mfd);
+void msm_fb_release_busy(struct msm_fb_data_type *mfd);
+
 #ifdef CONFIG_FB_BACKLIGHT
 void msm_fb_config_backlight(struct msm_fb_data_type *mfd);
 #endif

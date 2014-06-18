@@ -96,7 +96,7 @@ static void pico_panel_power(int on)
 	}
 }
 
-static int mipi_panel_power(int on)
+int mipi_panel_power(int on)
 {
 	int flag_on = !!on;
 
@@ -131,51 +131,10 @@ static struct mipi_dsi_platform_data mipi_dsi_pdata = {
 	.dlane_swap 		= 0x01,
 };
 
-#define BRI_SETTING_MIN                 30
-#define BRI_SETTING_DEF                 142
-#define BRI_SETTING_MAX                 255
-
-static unsigned char pico_shrink_pwm(int val)
-{
-	unsigned int pwm_min, pwm_default, pwm_max;
-	unsigned char shrink_br = BRI_SETTING_MAX;
-
-	if (panel_type == PANEL_ID_PIO_AUO) {
-		pwm_min = 10;
-		pwm_default = 115;
-		pwm_max = 217;
-	} else {
-		pwm_min = 10;
-		pwm_default = 133;
-		pwm_max = 255;
-	}
-
-	if (val <= 0) {
-		shrink_br = 0;
-	} else if (val > 0 && (val < BRI_SETTING_MIN)) {
-			shrink_br = pwm_min;
-	} else if ((val >= BRI_SETTING_MIN) && (val <= BRI_SETTING_DEF)) {
-			shrink_br = (val - BRI_SETTING_MIN) * (pwm_default - pwm_min) /
-		(BRI_SETTING_DEF - BRI_SETTING_MIN) + pwm_min;
-	} else if (val > BRI_SETTING_DEF && val <= BRI_SETTING_MAX) {
-			shrink_br = (val - BRI_SETTING_DEF) * (pwm_max - pwm_default) /
-		(BRI_SETTING_MAX - BRI_SETTING_DEF) + pwm_default;
-	} else if (val > BRI_SETTING_MAX)
-			shrink_br = pwm_max;
-
-
-	return shrink_br;
-}
-
-static struct msm_panel_common_pdata mipi_pico_panel_data = {
-	.shrink_pwm = NULL,
-};
-
 static struct platform_device mipi_dsi_cmd_hvga_panel_device = {
 	.name = "mipi_novatek",
 	.id = 0,
 	.dev = {
-		.platform_data = &mipi_pico_panel_data,
 	}
 };
 
@@ -219,7 +178,6 @@ static struct msm_panel_common_pdata mdp_pdata = {
 	.cont_splash_enabled = 0x00,
 	.gpio = 97,
 	.mdp_rev = MDP_REV_303,
-	.mdp_color_enhance = pico_mdp_color_enhancement,
 };
 
 static void __init msm_fb_add_devices(void)
@@ -249,9 +207,6 @@ int __init pico_init_panel(void)
 
 	PR_DISP_INFO("panel_type= 0x%x\n", panel_type);
 	PR_DISP_INFO("%s: %s\n", __func__, mipi_dsi_cmd_hvga_panel_device.name);
-
-	mipi_pico_panel_data.shrink_pwm = pico_shrink_pwm;
-
 
 	ret = platform_device_register(&msm_fb_device);
 	ret = platform_device_register(&mipi_dsi_cmd_hvga_panel_device);

@@ -991,6 +991,7 @@ struct mdp_buf_sync {
 	uint32_t session_id;
 	int *acq_fen_fd;
 	int *rel_fen_fd;
+	int *retire_fen_fd;
 };
 
 struct mdp_async_blit_req_list {

@@ -30,6 +30,11 @@ static struct clk *mdp_dsi_pclk;
 static struct clk *ahb_m_clk;
 static struct clk *ahb_s_clk;
 static struct clk *ebi1_dsi_clk;
+
+static struct clk *dsi_m_pclk;
+static struct clk *dsi_s_pclk;
+static struct clk *amp_pclk;
+
 int mipi_dsi_clk_on;
 
 int mipi_dsi_clk_init(struct platform_device *pdev)
@@ -159,6 +164,26 @@ static void mipi_dsi_calibration(void)
 
 #define PREF_DIV_RATIO 19
 struct dsiphy_pll_divider_config pll_divider_config;
+u32 vco_level_100;
+u32 vco_min_allowed;
+
+void mipi_dsi_configure_fb_divider(u32 fps_level)
+{
+u32 fb_div_req, fb_div_req_by_2;
+u32 vco_required;
+vco_required = vco_level_100 * fps_level/100;
+if (vco_required < vco_min_allowed) {
+printk(KERN_WARNING "Can not change fps. Min level allowed is \
+%d \n", (vco_min_allowed * 100 / vco_level_100) + 1);
+return;
+}
+fb_div_req = vco_required * PREF_DIV_RATIO / 27;
+fb_div_req_by_2 = (fb_div_req / 2) - 1;
+pll_divider_config.fb_divider = fb_div_req;
+/* DSIPHY_PLL_CTRL_1 */
+MIPI_OUTP(MIPI_DSI_BASE + 0x204, fb_div_req_by_2 & 0xff);
+wmb();
+}
 
 int mipi_dsi_clk_div_config(uint8 bpp, uint8 lanes,
 			    uint32 *expected_dsi_pclk)
@@ -337,6 +362,20 @@ void cont_splash_clk_ctrl(int enable)
 	}
 }
 
+void mipi_dsi_prepare_ahb_clocks(void)
+{
+	clk_prepare(amp_pclk);
+	clk_prepare(dsi_m_pclk);
+	clk_prepare(dsi_s_pclk);
+}
+
+void mipi_dsi_unprepare_ahb_clocks(void)
+{
+	clk_unprepare(dsi_m_pclk);
+	clk_unprepare(dsi_s_pclk);
+	clk_unprepare(amp_pclk);
+}
+
 void mipi_dsi_prepare_clocks(void)
 {
 	clk_prepare(dsi_ref_clk);
@@ -477,9 +516,7 @@ void update_lane_config(struct msm_panel_info *pinfo)
 	pinfo->mipi.data_lane1 = FALSE;
 	pd->pll[10] |= 0x08;
 
-	printk("twn: gets frigging here!!!");
-
-	pinfo->yres = 480;
+	pinfo->yres = 320;
 	pinfo->lcdc.h_back_porch = 15;
 	pinfo->lcdc.h_front_porch = 21;
 	pinfo->lcdc.h_pulse_width = 5;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -56,14 +56,15 @@ typedef enum {
 	MAX_PHYS_TARGET_NUM,
 } DISP_TARGET_PHYS;
 
-enum {
-	BLT_SWITCH_TG_OFF,
-	BLT_SWITCH_TG_ON
-};
-
 /* panel info type */
 struct lcd_panel_info {
 	__u32 vsync_enable;
+	__u32 primary_vsync_init;
+	__u32 primary_rdptr_irq;
+	__u32 primary_start_pos;
+	__u32 vsync_threshold_continue;
+	__u32 vsync_threshold_start;
+	__u32 total_lines;
 	__u32 refx100;
 	__u32 v_back_porch;
 	__u32 v_front_porch;
@@ -71,7 +72,6 @@ struct lcd_panel_info {
 	__u32 hw_vsync_mode;
 	__u32 vsync_notifier_period;
 	__u32 blt_ctrl;
-	__u32 blt_mode;
 	__u32 rev;
 };
 
@@ -184,6 +184,8 @@ struct msm_panel_info {
 	struct lcdc_panel_info lcdc;
 	struct mipi_panel_info mipi;
 	struct lvds_panel_info lvds;
+	__u32 xres_aligned;
+	__u32 yres_aligned;
 };
 
 #define MSM_FB_SINGLE_MODE_PANEL(pinfo)		\
@@ -198,31 +200,18 @@ struct msm_fb_panel_data {
 	void (*set_rect) (int x, int y, int xres, int yres);
 	void (*set_vsync_notifier) (msm_fb_vsync_handler_type, void *arg);
 	void (*set_backlight) (struct msm_fb_data_type *);
+	int (*get_backlight_on_status) (void);
 
 	/* function entry chain */
- 	void (*display_on) (struct msm_fb_data_type *);
- 	void (*display_off) (struct msm_fb_data_type *);
- 	void (*bklswitch) (struct msm_fb_data_type *, bool on);
-	void (*bklctrl) (struct msm_fb_data_type *, bool on);
 	int (*on) (struct platform_device *pdev);
 	int (*off) (struct platform_device *pdev);
 	int (*late_init) (struct platform_device *pdev);
+	int (*early_off) (struct platform_device *pdev);
 	int (*power_ctrl) (boolean enable);
-	void (*panel_type_detect) (struct mipi_panel_info *);
 	struct platform_device *next;
 	int (*clk_func) (int enable);
-};
-
-enum {
-	MDP4_OVERLAY_BLT_SWITCH_TG_OFF,
-	MDP4_OVERLAY_BLT_SWITCH_TG_ON,
-	MDP4_OVERLAY_BLT_SWITCH_POLL
-};
-
-enum {
-	MDP4_OVERLAY_MODE_BLT_CTRL,
-	MDP4_OVERLAY_MODE_BLT_ALWAYS_ON,
-	MDP4_OVERLAY_MODE_BLT_ALWAYS_OFF
+	int (*fps_level_change) (struct platform_device *pdev,
+					u32 fps_level);
 };
 
 /*===========================================================================
@@ -232,7 +221,10 @@ struct platform_device *msm_fb_device_alloc(struct msm_fb_panel_data *pdata,
 						u32 type, u32 id);
 int panel_next_on(struct platform_device *pdev);
 int panel_next_off(struct platform_device *pdev);
+int panel_next_fps_level_change(struct platform_device *pdev,
+					u32 fps_level);
 int panel_next_late_init(struct platform_device *pdev);
+int panel_next_early_off(struct platform_device *pdev);
 
 int lcdc_device_register(struct msm_panel_info *pinfo);
 

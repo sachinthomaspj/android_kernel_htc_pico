@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -43,17 +43,16 @@
 #define MIPI_DSI_PRIM 1
 #define MIPI_DSI_SECD 2
 
-#define MIPI_DSI_PANEL_VGA 0
-#define MIPI_DSI_PANEL_WVGA 1
-#define MIPI_DSI_PANEL_WVGA_PT 2
-#define MIPI_DSI_PANEL_FWVGA_PT 3
-#define MIPI_DSI_PANEL_HVGA_PT 4
-#define MIPI_DSI_PANEL_WSVGA_PT 5
-#define MIPI_DSI_PANEL_QHD_PT 6
-#define MIPI_DSI_PANEL_WXGA 7
-#define MIPI_DSI_PANEL_WUXGA 8
-#define MIPI_DSI_PANEL_720P_PT 9
-#define DSI_PANEL_MAX 9
+#define MIPI_DSI_PANEL_VGA	0
+#define MIPI_DSI_PANEL_WVGA	1
+#define MIPI_DSI_PANEL_WVGA_PT	2
+#define MIPI_DSI_PANEL_FWVGA_PT	3
+#define MIPI_DSI_PANEL_WSVGA_PT	4
+#define MIPI_DSI_PANEL_QHD_PT 5
+#define MIPI_DSI_PANEL_WXGA	6
+#define MIPI_DSI_PANEL_WUXGA	7
+#define MIPI_DSI_PANEL_720P_PT	8
+#define DSI_PANEL_MAX	8
 
 enum {		/* mipi dsi panel */
 	DSI_VIDEO_MODE,
@@ -118,6 +117,7 @@ enum dsi_trigger_type {
 #define DSI_INTR_CMD_DMA_DONE_MASK	BIT(1)
 #define DSI_INTR_CMD_DMA_DONE		BIT(0)
 
+#define DSI_VIDEO_TERM	BIT(16)
 #define DSI_MDP_TERM	BIT(8)
 #define DSI_CMD_TERM	BIT(0)
 
@@ -268,13 +268,12 @@ typedef void (*fxn)(u32 data);
 #define CMD_REQ_COMMIT	0x0002
 #define CMD_CLK_CTRL	0x0004
 #define CMD_REQ_NO_MAX_PKT_SIZE 0x0008
-#define CMD_MDP3_CMD_PANEL 0x80000000  /* mdp3 only */
+#define CMD_REQ_SINGLE_TX 0x0010
 
 struct dcs_cmd_req {
 	struct dsi_cmd_desc *cmds;
 	int cmds_cnt;
 	u32 flags;
-	struct dsi_buf *rbuf;
 	int rlen;	/* rx length */
 	fxn cb;
 };
@@ -295,7 +294,15 @@ void mipi_dsi_bist_ctrl(void);
 int mipi_dsi_buf_alloc(struct dsi_buf *, int size);
 int mipi_dsi_cmd_dma_add(struct dsi_buf *dp, struct dsi_cmd_desc *cm);
 int mipi_dsi_cmds_tx(struct dsi_buf *dp, struct dsi_cmd_desc *cmds, int cnt);
+int mipi_dsi_cmds_single_tx(struct dsi_buf *dp, struct dsi_cmd_desc *cmds,
+								int cnt);
+
+int mipi_dsi_cmd_dma_tx(struct dsi_buf *dp);
 int mipi_dsi_cmd_reg_tx(uint32 data);
+int mipi_dsi_cmds_rx(struct msm_fb_data_type *mfd,
+			struct dsi_buf *tp, struct dsi_buf *rp,
+			struct dsi_cmd_desc *cmds, int len);
+int mipi_dsi_cmd_dma_rx(struct dsi_buf *tp, int rlen);
 void mipi_dsi_host_init(struct mipi_panel_info *pinfo);
 void mipi_dsi_op_mode_config(int mode);
 void mipi_dsi_cmd_mode_ctrl(int enable);
@@ -307,7 +314,7 @@ void mipi_dsi_cmd_bta_sw_trigger(void);
 void mipi_dsi_ack_err_status(void);
 void mipi_dsi_set_tear_on(struct msm_fb_data_type *mfd);
 void mipi_dsi_set_tear_off(struct msm_fb_data_type *mfd);
-static void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level);
+void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd, int level);
 void mipi_dsi_cmd_backlight_tx(struct dsi_buf *dp);
 void mipi_dsi_pre_kickoff_action(void);
 void mipi_dsi_post_kickoff_action(void);
@@ -332,8 +339,9 @@ void mipi_dsi_clk_deinit(struct device *dev);
 #ifdef CONFIG_FB_MSM_MIPI_DSI
 void mipi_dsi_clk_enable(void);
 void mipi_dsi_clk_disable(void);
-void mipi_dsi_prepare_clocks(void);
 void mipi_dsi_unprepare_clocks(void);
+void mipi_dsi_prepare_ahb_clocks(void);
+void mipi_dsi_unprepare_ahb_clocks(void);
 void mipi_dsi_ahb_ctrl(u32 enable);
 void mipi_dsi_phy_ctrl(int on);
 #else
@@ -372,6 +380,8 @@ int mipi_dsi_cmdlist_put(struct dcs_cmd_req *cmdreq);
 struct dcs_cmd_req *mipi_dsi_cmdlist_get(void);
 void mipi_dsi_cmdlist_commit(int from_mdp);
 void mipi_dsi_cmd_mdp_busy(void);
+void mipi_dsi_configure_fb_divider(u32 fps_level);
+void mipi_dsi_wait4video_done(void);
 
 #ifdef CONFIG_FB_MSM_MDP303
 void update_lane_config(struct msm_panel_info *pinfo);

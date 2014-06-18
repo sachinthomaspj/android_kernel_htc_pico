@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -73,7 +73,6 @@ extern uint32 mdp_intr_mask;
 #define MDPOP_SHARPENING	BIT(11) /* enable sharpening */
 #define MDPOP_BLUR		BIT(12) /* enable blur */
 #define MDPOP_FG_PM_ALPHA       BIT(13)
-#define MDPOP_LAYER_IS_FG       BIT(14)
 #define MDP_ALLOC(x)  kmalloc(x, GFP_KERNEL)
 
 struct mdp_buf_type {
@@ -96,11 +95,9 @@ extern unsigned char hdmi_prim_resolution;
 
 struct vsync {
 	ktime_t vsync_time;
-	struct completion vsync_comp;
 	struct device *dev;
 	struct work_struct vsync_work;
 	int vsync_irq_enabled;
-	int vsync_dma_enabled;
 	int disabled_clocks;
 	struct completion vsync_wait;
 	atomic_t suspend;
@@ -295,14 +292,12 @@ extern struct mdp_hist_mgmt *mdp_hist_mgmt_array[];
 #define MDP_PPP_TERM 0x4
 #define MDP_DMA_S_TERM 0x8
 #define MDP_DMA_E_TERM 0x10
-#ifdef CONFIG_FB_MSM_MDP40
 #define MDP_OVERLAY0_TERM 0x20
 #define MDP_OVERLAY1_TERM 0x40
 #define MDP_DMAP_TERM MDP_DMA2_TERM	/* dmap == dma2 */
 #define MDP_PRIM_VSYNC_TERM 0x100
 #define MDP_EXTER_VSYNC_TERM 0x200
 #define MDP_PRIM_RDPTR_TERM 0x400
-#endif
 #define MDP_OVERLAY2_TERM 0x80
 #define MDP_HISTOGRAM_TERM_DMA_P 0x10000
 #define MDP_HISTOGRAM_TERM_DMA_S 0x20000
@@ -735,8 +730,9 @@ extern struct mdp_hist_mgmt *mdp_hist_mgmt_array[];
 #define MDP_DMA_P_LUT_C2_EN   BIT(2)
 #define MDP_DMA_P_LUT_POST    BIT(4)
 
-void mdp_hw_init(int splash);
+void mdp_hw_init(void);
 int mdp_ppp_pipe_wait(void);
+void mdp_pipe_kickoff_simplified(uint32 term);
 void mdp_pipe_kickoff(uint32 term, struct msm_fb_data_type *mfd);
 void mdp_clk_ctrl(int on);
 void mdp_pipe_ctrl(MDP_BLOCK_TYPE block, MDP_BLOCK_POWER_STATE state,
@@ -798,10 +794,6 @@ static inline int mdp4_lcdc_off(struct platform_device *pdev)
 {
 	return 0;
 }
-static inline int mdp4_mddi_off(struct platform_device *pdev)
-{
-	return 0;
-}
 static inline int mdp4_dsi_cmd_on(struct platform_device *pdev)
 {
 	return 0;
@@ -814,19 +806,6 @@ static inline int mdp4_lcdc_on(struct platform_device *pdev)
 {
 	return 0;
 }
-static inline int mdp4_mddi_on(struct platform_device *pdev)
-{
-	return 0;
-}
-#endif
-
-
-#ifndef CONFIG_FB_MSM_MDDI
-static inline void mdp4_mddi_rdptr_init(int cndx)
-{
-	/* empty */
-}
-
 #endif
 
 void set_cont_splashScreen_status(int);
@@ -853,10 +832,12 @@ int mdp_clk_round_rate(u32 rate);
 unsigned long mdp_get_core_clk(void);
 
 #ifdef CONFIG_MSM_BUS_SCALING
-int mdp_bus_scale_update_request(u64 ab, u64 ib);
+int mdp_bus_scale_update_request(u64 ab_p0, u64 ib_p0, u64 ab_p1, u64 ib_p1);
 #else
-static inline int mdp_bus_scale_update_request(u64 ab,
-					       u64 ib)
+static inline int mdp_bus_scale_update_request(u64 ab_p0,
+					       u64 ib_p0,
+					       u64 ab_p1,
+					       u64 ib_p1)
 {
 	return 0;
 }
@@ -894,6 +875,8 @@ void mdp_histogram_handle_isr(struct mdp_hist_mgmt *mgmt);
 void __mdp_histogram_kickoff(struct mdp_hist_mgmt *mgmt);
 void __mdp_histogram_reset(struct mdp_hist_mgmt *mgmt);
 void mdp_footswitch_ctrl(boolean on);
+int mdp_enable_iommu_clocks(void);
+int mdp_disable_iommu_clocks(void);
 
 #ifdef CONFIG_FB_MSM_MDP303
 static inline void mdp4_dsi_cmd_dma_busy_wait(struct msm_fb_data_type *mfd)
@@ -929,7 +912,7 @@ static inline int msmfb_overlay_vsync_ctrl(struct fb_info *info,
 
 int mdp_ppp_v4l2_overlay_set(struct fb_info *info, struct mdp_overlay *req);
 int mdp_ppp_v4l2_overlay_clear(void);
-int mdp_ppp_v4l2_overlay_play(struct fb_info *info, bool bUserPtr,
+int mdp_ppp_v4l2_overlay_play(struct fb_info *info,
 	unsigned long srcp0_addr, unsigned long srcp0_size,
 	unsigned long srcp1_addr, unsigned long srcp1_size);
 void mdp_update_pm(struct msm_fb_data_type *mfd, ktime_t pre_vsync);
@@ -943,5 +926,26 @@ static inline void mdp_vid_quant_set(void)
 {
 	/* empty */
 }
+#endif
+
+#ifdef CONFIG_UPDATE_LCDC_LUT
+#define R_MASK    0x00ff0000
+#define G_MASK    0x000000ff
+#define B_MASK    0x0000ff00
+#define R_SHIFT   16
+#define G_SHIFT   0
+#define B_SHIFT   8
+#define lut2r(lut) ((lut & R_MASK) >> R_SHIFT)
+#define lut2g(lut) ((lut & G_MASK) >> G_SHIFT)
+#define lut2b(lut) ((lut & B_MASK) >> B_SHIFT)
+
+#ifdef CONFIG_LCD_KCAL
+#define NUM_QLUT  256
+#define MAX_KCAL_V (NUM_QLUT-1)
+#define scaled_by_kcal(rgb, kcal) \
+		(((((unsigned int)(rgb) * (unsigned int)(kcal)) << 16) / \
+		(unsigned int)MAX_KCAL_V) >> 16)
+#endif
+int mdp_preset_lut_update_lcdc(struct fb_cmap *cmap, uint32_t *internal_lut);
 #endif
 #endif /* MDP_H */
