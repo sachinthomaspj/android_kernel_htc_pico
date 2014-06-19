@@ -547,6 +547,8 @@ struct mipi_dsi_panel_platform_data {
 	int *gpio;
 	struct mipi_dsi_phy_ctrl *phy_ctrl_settings;
 	void (*dsi_pwm_cfg)(void);
+	char enable_wled_bl_ctrl;
+	void (*gpio_set_backlight)(int bl_level);
 };
 
 
