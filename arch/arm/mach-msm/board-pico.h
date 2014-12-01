@@ -44,7 +44,7 @@ int __init pico_wifi_init(void);
 /* experimental values! to revert if stability issues faced!
  * try to snatch as much memory as possible, keeping the system stable.
  */
-#define MSM_PMEM_MDP_SIZE       0x1000000 /* (16 mB) */
+#define MSM_PMEM_MDP_SIZE       0x1500000 /* (21 mB) */
 #define MSM_PMEM_ADSP_SIZE      0x1000000 /* (16 mB) */
 #define MSM_PMEM_AUDIO_SIZE     0x0100000 /* (1 mB) */
 #else
